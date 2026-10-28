@@ -2999,6 +2999,13 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
   // contenido de la diapositiva si desborda, luego las imágenes del slider
   // del proyecto y, al final, el proyecto
   function arrowStep(dir) {
+    // hacia atrás es el orden inverso de hacia adelante: primero las imágenes
+    // del slider (si se ve), luego subir el contenido y al final el proyecto
+    if (dir < 0) {
+      const s = steps[cur];
+      const sl = s && s.proj && s.proj.querySelector('[data-slider]');
+      if (sl && sl.__nav && sliderInView(sl) && sl.__nav(-1)) return true;
+    }
     const sc = steps[cur] && steps[cur].stage.querySelector(':scope > .container');
     if (sc && scrollerFor(sc, false, dir)) {
       // si lo que falta cabe en una pantalla, va hasta el final de una vez
@@ -3073,8 +3080,18 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
   function slideOrStep(dir) {
     const s = steps[cur];
     const sl = s && s.proj && s.proj.querySelector('[data-slider]');
-    if (sl && sl.__nav && sl.__nav(dir)) return;
+    if (sl && sl.__nav && sliderInView(sl) && sl.__nav(dir)) return;
     galOrStep(dir);
+  }
+  // el slider sólo se recorre si se ve: en móvil queda bajo la intro y, con
+  // el contenido arriba, ← cambiaba una imagen fuera de pantalla y parecía
+  // que la flecha no hacía nada → si no se ve, se cambia de proyecto
+  function sliderInView(sl) {
+    const main = sl.querySelector('.slider-main') || sl;
+    const r = main.getBoundingClientRect();
+    if (!r.height) return false;
+    const top = Math.max(r.top, 0), bottom = Math.min(r.bottom, window.innerHeight);
+    return (bottom - top) / r.height >= 0.4;
   }
   window.addEventListener('wheel', e => {
     if (e.ctrlKey) return;
