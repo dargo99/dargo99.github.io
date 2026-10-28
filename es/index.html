@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="es" data-base="../">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>David Arias · Desarrollador Web &amp; Diseñador</title>
+  <link rel="icon" href="../img/siteico.png" type="image/png" />
+  <link rel="alternate" hreflang="en" href="https://dargo99.github.io/" />
+  <link rel="alternate" hreflang="es" href="https://dargo99.github.io/es/" />
+  <link rel="stylesheet" href="../style.css?v=20261030h" />
+</head>
+<body>
+  <!-- Activa el modo deck ANTES del primer pintado: si se esperaba a script.js
+       (al final del body) el hero se pintaba primero con el layout normal y la
+       descripción/botones visibles, y luego se ocultaban con un fundido. -->
+  <script>document.body.classList.add('deck', 'deck-boot');</script>
+
+  <!-- Filtros SVG: aberración cromática (lupa) + deformación del agua (aurora) -->
+  <svg id="fx-defs" aria-hidden="true" focusable="false" width="0" height="0">
+    <defs>
+      <filter id="chroma" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
+        <feOffset in="SourceGraphic" dx="-2.5" dy="0" result="r" />
+        <feOffset in="SourceGraphic" dx="2.5" dy="0" result="b" />
+        <feColorMatrix in="r" type="matrix" result="rOnly"
+          values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" />
+        <feColorMatrix in="b" type="matrix" result="bOnly"
+          values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" />
+        <feBlend in="rOnly" in2="SourceGraphic" mode="screen" result="rb" />
+        <feBlend in="bOnly" in2="rb" mode="screen" />
+      </filter>
+    </defs>
+  </svg>
+
+  <!-- Capa de código decorativo: binario + fragmentos de los lenguajes del CV.
+       Poblada por script.js; muy tenue para no competir con el contenido. -->
+  <div id="code-rain" aria-hidden="true"></div>
+
+  <!-- Efecto agua: canvas de baja resolución con ripples que siguen al cursor -->
+  <canvas id="ripple" aria-hidden="true"></canvas>
+
+  <!-- Custom cursor -->
+  <div id="cursor"></div>
+
+  <!-- Retro grain overlay -->
+  <div id="grain"></div>
+
+  <!-- Zoom modal (slider images / videos) -->
+  <div id="zoom" role="dialog" aria-modal="true" aria-label="Visor de imágenes" aria-hidden="true">
+    <button type="button" id="zoom-close" data-sound="clic">✕</button>
+    <button type="button" id="zoom-prev" data-sound="clic">←</button>
+    <button type="button" id="zoom-next" data-sound="clic">→</button>
+    <span id="zoom-tag"></span>
+    <span id="zoom-ba" class="ba-cover" aria-hidden="true"></span>
+    <div class="zoom-view">
+      <img id="zoom-img" src="" alt="Vista ampliada" decoding="async" />
+      <video id="zoom-video" loop muted playsinline preload="metadata"></video>
+    </div>
+  </div>
+
+  <!-- Lightbox (freelance graphic pieces) — a nivel de body para que su overlay
+       cubra toda la página (si va anidado en una sección queda atrapado). -->
+  <div id="lightbox" role="dialog" aria-modal="true" aria-label="Visor de diseño gráfico" aria-hidden="true">
+    <button type="button" id="lb-close" data-sound="clic">✕</button>
+    <button type="button" id="lb-prev"  data-sound="clic">←</button>
+    <button type="button" id="lb-next"  data-sound="clic">→</button>
+    <img id="lb-img" src="" alt="Vista ampliada" />
+  </div>
+
+  <!-- Audio -->
+  <audio id="snd-clic"   src="../audio/clic.mp3"   preload="auto"></audio>
+  <audio id="snd-whoosh" src="../audio/whoosh.mp3" preload="auto"></audio>
+  <audio id="snd-tilin"  src="../audio/tilin.mp3"  preload="auto"></audio>
+  <audio id="snd-whoomp" src="../audio/whoomp.mp3" preload="auto"></audio>
+
+<!-- TOP BAR -->
+<nav id="topbar">
+  <a href="#hero" class="nav-logo glitch" data-sound="clic" data-text="DAVID ARIAS.">
+    <img src="../img/siteico.png" alt="Logo de David Arias" />
+    <span class="brand">
+      <strong>DAVID ARIAS<span class="red">.</span></strong>
+      <span class="side-roles">Desarrollador Web &amp; Diseñador</span>
+    </span>
+  </a>
+
+  <ul>
+    <li><a href="#hero"         data-sound="clic"><span class="micro">00</span> Inicio</a></li>
+    <li><a href="#fama"         data-sound="clic"><span class="micro">01</span> FAMA</a></li>
+    <li><a href="#freelance"    data-sound="clic"><span class="micro">02</span> Freelance</a></li>
+    <li><a href="#bambuco"      data-sound="clic"><span class="micro">03</span> BambuCo</a></li>
+    <li><a href="#confiar"      data-sound="clic"><span class="micro">04</span> Confiar</a></li>
+    <li><a href="#volunteering" data-sound="clic"><span class="micro">05</span> Voluntariado</a></li>
+    <li><a href="#about"        data-sound="clic"><span class="micro">06</span> Sobre mí</a></li>
+  </ul>
+
+  <a href="../cv/David-Arias-CV-ES.pdf" download="David-Arias-CV-ES.pdf" class="btn-light btn-sm glitch" data-sound="whoomp" data-text="Descargar CV">
+    <img class="cv-icon" src="../img/descargas.png" alt="" />
+    <span class="cv-text">Descargar CV</span>
+  </a>
+</nav>
+
+  <!-- Cambio de idioma: esquina superior izquierda, bajo el topbar -->
+  <a href="../index.html" class="lang-switch" hreflang="en" lang="en" data-sound="clic" aria-label="View the portfolio in English"><span class="ls-alt">EN</span><span class="ls-sep">/</span><span class="ls-cur">ES</span></a>
+
+  <!-- BOTTOM CONTACT BAR (expands on hover) -->
+  <div id="bottombar">
+    <div class="bb-deco">
+      <span class="orb bb-orb2"></span>
+      <div class="deco-ring-sm bb-ring"></div>
+      <span class="deco-plus dp4">+</span>
+      <span class="deco-shape ds-tri s12"></span>
+      <span class="deco-shape ds-ci s6"></span>
+      <span class="bb-title">Contacto</span>
+    </div>
+    <button type="button" class="bb-toggle" aria-label="Cerrar barra de contacto" data-sound="clic">+</button>
+    <a href="mailto:davidargo42@gmail.com" data-sound="tilin"><img src="../img/mail.png" alt="Correo" /><span>davidargo42@gmail.com</span></a>
+    <a href="https://wa.me/573117294279" target="_blank" rel="noopener" data-sound="tilin"><img src="../img/whatsapp.png" alt="WhatsApp" /><span>+57 311 729 42 79 <small class="bb-note">(solo WhatsApp)</small></span></a>
+    <a href="https://www.linkedin.com/in/dargo99/" target="_blank" rel="noopener" data-sound="tilin"><img src="../img/linkedin.png" alt="LinkedIn" /><span style="margin-top: 7px;">in/dargo99</span></a>
+    <a href="https://github.com/dargo99" target="_blank" rel="noopener" data-sound="tilin"><img src="../img/github.png" alt="GitHub" /><span>github.com/dargo99</span></a>
+    <a href="#hero" class="backtop" data-sound="whoosh" aria-label="Volver al inicio"><svg class="home-ico" viewBox="0 0 9 8" aria-hidden="true" focusable="false" shape-rendering="crispEdges"><path d="M4 0h1v1h1v1h1v1h1v1H7v4H5V5H4v3H2V4H1V3h1V2h1V1h1z"/></svg><span>Volver</span></a>
+  </div>
+
+  <!-- DECK: el sitio funciona como un slider 3D que avanza con el scroll.
+       Glow de fondo (cambia de color por sección), progreso y flechas. -->
+  <div id="deck-glow" aria-hidden="true"></div>
+  <div id="deck-progress" aria-hidden="true"><span></span></div>
+  <nav id="deck-nav" aria-label="Diapositivas">
+    <button type="button" id="deck-prev" class="deck-arrow prev" aria-label="Diapositiva anterior"><svg viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><path d="M696 533C708 521 713 504 713 487 713 471 708 454 696 446L400 146C388 133 375 125 354 125 338 125 325 129 313 142 300 154 292 171 292 187 292 204 296 221 308 233L563 492 304 771C292 783 288 800 288 817 288 833 296 850 308 863 321 871 338 875 354 875 371 875 388 867 400 854L696 533Z"></path></svg></button>
+    <span id="deck-count" class="micro" aria-live="polite">01 / 01</span>
+    <button type="button" id="deck-next" class="deck-arrow next" aria-label="Diapositiva siguiente"><svg viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><path d="M696 533C708 521 713 504 713 487 713 471 708 454 696 446L400 146C388 133 375 125 354 125 338 125 325 129 313 142 300 154 292 171 292 187 292 204 296 221 308 233L563 492 304 771C292 783 288 800 288 817 288 833 296 850 308 863 321 871 338 875 354 875 371 875 388 867 400 854L696 533Z"></path></svg></button>
+  </nav>
+
+  <!-- Pista "gamificada" (visible en todo el sitio) para navegar: mouse con
+       ruedita y flechas del teclado en pixel art (SVG generado por script.js),
+       con demo automática y respuesta al usar la rueda o las teclas reales. -->
+  <div class="kbd-hint" aria-hidden="true">
+    <div class="kbd-row kbd-scroll">
+      <i class="kbd-mouse"></i>
+    </div>
+    <div class="kbd-row">
+      <div class="kbd-keys">
+        <i class="kc" data-key="ArrowUp"></i>
+        <i class="kc" data-key="ArrowLeft"></i>
+        <i class="kc" data-key="ArrowDown"></i>
+        <i class="kc" data-key="ArrowRight"></i>
+        <i class="kc kc-space" data-key=" "></i>
+      </div>
+    </div>
+  </div>
+
+  <div id="page">
+
+    <!-- HERO -->
+    <header id="hero">
+      <div class="hero-streak" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+      <div class="tools-bg"></div>
+      <div class="deco-ring"></div>
+      <span class="deco-plus dp1">+</span>
+      <span class="deco-plus dp2">+</span>
+      <span class="deco-plus dp3">+</span>
+      <span class="deco-shape ds-ci s2"></span>
+      <span class="deco-shape ds-tri s3"></span>
+      <span class="deco-shape ds-tri s9"></span>
+      <div class="deco-dots dd0"></div>
+      <span class="side-label side-bl micro hint-label" aria-hidden="true">Presiona <kbd class="kcap" data-key="0">0</kbd>–<kbd class="kcap" data-key="6">6</kbd> para ir a cada sección · o usa estas teclas <span class="hint-arrow">→</span></span>
+      <span class="side-label side-tr micro" aria-hidden="true">Portafolio · 2026 · Medellín · Colombia</span>
+
+      <div class="container hero-inner">
+        <div class="hero-top">
+          <h1 class="hero-name" aria-label="David Arias"><span class="hn-line" id="type-name" aria-hidden="true"></span></h1>
+          <a href="#fama" class="hero-rolebig" data-sound="whoosh" aria-label="Desarrollador web &amp; diseñador: ver mi trabajo">
+            <span class="px px-glitch" id="type-px"></span>
+            <span class="role-amp" id="type-amp"></span>
+          </a>
+        </div>
+        <div class="hero-row">
+          <div class="hero-desc">
+            <strong class="hd-stat"><span class="hd-num">8+</span><span class="hd-unit">años</span></strong>
+            <p class="hd-text">creando experiencias de usuario en los sectores financiero, educativo y de salud.</p>
+          </div>
+        </div>
+        <div class="hero-ctas">
+          <a href="../cv/David-Arias-CV-ES.pdf" download="David-Arias-CV-ES.pdf" class="btn-ghost btn-cv" data-sound="whoomp"><img class="cv-icon" src="../img/descargas.png" alt="" /><span>Descargar CV</span></a>
+          <a href="#fama" class="btn-dark btn-arrow" data-sound="whoosh"><span>Ver mi trabajo</span><svg viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><path d="M696 533C708 521 713 504 713 487 713 471 708 454 696 446L400 146C388 133 375 125 354 125 338 125 325 129 313 142 300 154 292 171 292 187 292 204 296 221 308 233L563 492 304 771C292 783 288 800 288 817 288 833 296 850 308 863 321 871 338 875 354 875 371 875 388 867 400 854L696 533Z"></path></svg></a>
+        </div>
+      </div>
+    </header>
+
+    <!-- ============ FAMA ============ -->
+    <section id="fama" class="rule company-sec">
+      <span class="sec-streak ss-c" aria-hidden="true"></span>
+      <span class="deco-word section-wm">FAMA</span>
+      <span class="deco-plus dp4">+</span>
+      <span class="deco-plus dp6">+</span>
+      <div class="deco-dots dd1"></div>
+      <div class="deco-ring-sm dr1"></div>
+      <span class="deco-shape ds-tri s11"></span>
+      <div class="container">
+        <div class="section-head">
+          <span class="big-num glitch" data-text="01.">01.</span>
+          <h2 class="section-title glitch" data-text="FAMA">FAMA</h2>
+          <p class="head-loc">Remoto · Pembroke Pines, FL, <span class="loc-end">EE. UU. <svg class="flag" viewBox="0 0 13 9" aria-hidden="true" focusable="false" shape-rendering="crispEdges"><path fill="#fff" d="M0 0h13v9H0z"/><path fill="#b22234" d="M0 0h13v1H0zM0 2h13v1H0zM0 4h13v1H0zM0 6h13v1H0zM0 8h13v1H0z"/><path fill="#3c3b6e" d="M0 0h6v5H0z"/><path fill="#fff" d="M1 1h1v1H1zM3 1h1v1H3zM2 2h1v1H2zM4 2h1v1H4zM1 3h1v1H1zM3 3h1v1H3z"/></svg></span></p>
+        </div>
+
+        <div class="exp-intro">
+          <span class="proj-num">May 2024 – Actual</span>
+          <h3 class="exp-role glitch" data-text="Desarrollador Web &amp; Diseñador">Desarrollador Web &amp; Diseñador</h3>
+          <div class="exp-sites">
+            <a href="https://famaedu.com/" target="_blank" rel="noopener" class="site-pill" data-projs="0,1" data-alt-proj="1" data-alt-href="https://famaedu.com/apply/" data-alt-label="famaedu.com/apply ↗" data-sound="tilin"><svg class="web-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9.5"/><ellipse cx="12" cy="12" rx="4.2" ry="9.5"/><path d="M3.5 8.6h17M3.5 15.4h17"/></svg>famaedu.com ↗</a>
+            <a href="https://danikmedspa.com/" target="_blank" rel="noopener" class="site-pill" data-projs="2" data-sound="tilin"><svg class="web-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9.5"/><ellipse cx="12" cy="12" rx="4.2" ry="9.5"/><path d="M3.5 8.6h17M3.5 15.4h17"/></svg>danikmedspa.com ↗</a>
+            <span class="sites-break" aria-hidden="true"></span>
+            <a href="https://danikdeals.com/" target="_blank" rel="noopener" class="site-pill" data-projs="3" data-sound="tilin"><svg class="web-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9.5"/><ellipse cx="12" cy="12" rx="4.2" ry="9.5"/><path d="M3.5 8.6h17M3.5 15.4h17"/></svg>danikdeals.com ↗</a>
+            <button type="button" class="site-pill site-more" data-sound="tilin" aria-expanded="false" aria-controls="fama-more-sites" aria-label="Ver 3 sitios más">+3</button>
+            <span class="site-menu" id="fama-more-sites" role="menu" hidden>
+              <a href="https://ultherapyfacelift.com/" target="_blank" rel="noopener" role="menuitem" data-sound="tilin"><svg class="web-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9.5"/><ellipse cx="12" cy="12" rx="4.2" ry="9.5"/><path d="M3.5 8.6h17M3.5 15.4h17"/></svg>ultherapyfacelift.com ↗</a>
+              <a href="https://morpheus8.cc/" target="_blank" rel="noopener" role="menuitem" data-sound="tilin"><svg class="web-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9.5"/><ellipse cx="12" cy="12" rx="4.2" ry="9.5"/><path d="M3.5 8.6h17M3.5 15.4h17"/></svg>morpheus8.cc ↗</a>
+              <a href="https://bodysculpting.me/" target="_blank" rel="noopener" role="menuitem" data-sound="tilin"><svg class="web-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9.5"/><ellipse cx="12" cy="12" rx="4.2" ry="9.5"/><path d="M3.5 8.6h17M3.5 15.4h17"/></svg>bodysculpting.me ↗</a>
+            </span>
+            <p class="exp-note">También administro hosting, DNS y seguridad en Cloudflare (WAF, SSL, límites de tráfico) de 9 dominios.</p>
+          </div>
+        </div>
+
+        <h3 class="projects-title glitch" data-text="Proyectos">Proyectos</h3>
+
+        <!-- Project: famaedu landings (single slider) -->
+        <article class="project">
+          <header class="proj-head">
+            <h4 class="proj-name glitch" data-text="famaedu.com · Landings">famaedu.com · Landings</h4>
+            <dl class="proj-meta micro">
+              <div><dd>WordPress, Elementor, WooCommerce, PHP, HTML, CSS, JS</dd></div>
+            </dl>
+          </header>
+          <div class="slider" data-slider>
+            <div class="slider-main tall">
+              <div class="slide"><img data-lum="f8ebf5dbe3f1f2f7f4e2ecc42944f9dabcbbbdc7c8e3fcfe60393e3d3e3b3939eaeae0ecebeaeaeaf4f8f8f8f8f8f8f8f8f8f8f8f8f8f88e24242126e9f1f1f2f3ad2025292d3135393d42464a4e5257bfffffffffffffffff9d3e3f40403e3e|c7e26e9a4a1c251c173dad8a2944fbe3c1c2c3d0c3e3fdfe613735363635363aeaead7ebececebeaf4f8f8f8f8f8f8f8f8f8f8f8f8f8f88e2a2a2229f6ffffffffb42025292d3135393d42464a4e5257bfffffffffffffffe590393b39393737" data-src="../img/opt/home-fama.webp" alt="Página de inicio de famaedu.com" loading="lazy" decoding="async" /></div>
+              <div class="slide"><img data-lum="f8edf3fbfbe8e9f8fcfbfafcfbffe55b6366d1f9fbfdfbfafdf9fbfcfafbfcfcfcfcfafcfcfafafffffffffffffffffffffffffffffffffffaf5f5f5f5f5f5f5f6f6f6f7fbfbf4f5f8f7ffffffffffffffffffffffffffffffffffffffffffff|befb9e9ea19188aeb4b6b0c1b4fde553535fd6fdfdfdfbfafdf9fbfcfafbfcfcfcf9fafcfcfafafffffffffffffffffffffffffffffffffffaf5f5f5f5f5f5f5f6f6f6f7fbfbf3f5f7f7ffffffffffffffffffffffffffffffffffffffffffff" data-src="../img/opt/skincare-fama.webp" alt="Landing del Skin Care Diploma de FAMA" loading="lazy" decoding="async" /></div>
+              <div class="slide"><img data-lum="f7eca379625f62544a392e24201d1d1d1d1d1d1d1d1d1d1d1d1d80ffffffffffffffffffd3464143395f66dbfffffffffffef6f6f6f6f6f6fefffffffffffffeeceeefeff0f0f5fefefdfbfaf9ac2024272b2e3235383c3f43464a4e51545844|bcfb98827e6b3527191c1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d80ffffffffffffffffffcc503f5a373338dbfffffffffffef6f6f6f6f6f6fefffffffffffffef1f3f5f5f4f5f9fefefdfbfaf9ab2023272b2e3235383c634c464a4d5154584f" data-src="../img/opt/tour-fama.webp" alt="Página de reserva de tours del campus de FAMA" loading="lazy" decoding="async" /></div>
+              <button type="button" class="nav-btn prev-btn" aria-label="Anterior"><svg viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><path d="M696 533C708 521 713 504 713 487 713 471 708 454 696 446L400 146C388 133 375 125 354 125 338 125 325 129 313 142 300 154 292 171 292 187 292 204 296 221 308 233L563 492 304 771C292 783 288 800 288 817 288 833 296 850 308 863 321 871 338 875 354 875 371 875 388 867 400 854L696 533Z"></path></svg></button>
+              <button type="button" class="nav-btn next-btn" aria-label="Siguiente"><svg viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><path d="M696 533C708 521 713 504 713 487 713 471 708 454 696 446L400 146C388 133 375 125 354 125 338 125 325 129 313 142 300 154 292 171 292 187 292 204 296 221 308 233L563 492 304 771C292 783 288 800 288 817 288 833 296 850 308 863 321 871 338 875 354 875 371 875 388 867 400 854L696 533Z"></path></svg></button>
+              <span class="slide-counter micro">01 / 03</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill"><span>🚀</span></div></div>
+            <div class="thumbs">
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/home-fama.webp" alt="" loading="lazy" decoding="async" /></button>
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/skincare-fama.webp" alt="" loading="lazy" decoding="async" /></button>
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/tour-fama.webp" alt="" loading="lazy" decoding="async" /></button>
+            </div>
+          </div>
+          <p class="proj-desc">
+            Defino el diseño, publico la mayoría de las landings y desarrollo plugins que las mantienen rápidas (PageSpeed 90+), seguras, accesibles y optimizadas para SEO.
+          </p>
+        </article>
+
+        <!-- Project: custom checkout & enrollment -->
+        <article class="project">
+          <header class="proj-head">
+            <h4 class="proj-name glitch" data-text="Checkout e inscripción a la medida">Checkout e inscripción a la medida</h4>
+            <dl class="proj-meta micro">
+              <div><dd>PHP, CSS, HTML, JS, Elementor, WooCommerce, WordPress</dd></div>
+            </dl>
+          </header>
+          <div class="slider" data-slider>
+            <div class="slider-main tall">
+              <div class="slide"><img data-lum="ffeefaf2e2c9c2dfe8f3fdfffffffffffffffffffffffffffffffffffffffffffffffffffffbe5dde0e2f3fffffffffffffffffffffffffffffffffffffffffffffffce6dfdfe1f1fefffffffffffffffffffffffffffffffffffffffffffff4|b99c9bf8fffaf8ffeff3fdfffffffffffffffffffffffffffffffffffffffffffffffffffffbf5e7e9f0fbfffffffffffffffffffffffffffffffffffffffffffffffcf8e8e6f1fafffffffffffffffffffffffffffffffffffffffffffffff4" data-src="../img/opt/apply-fama.webp" alt="Asistente de inscripción de FAMA" loading="lazy" decoding="async" /></div>
+              <div class="slide"><img data-lum="eef1ebf8f8f8f8f8f8f8f8f8f8f8f8f0e1eaf8f8f8f8f8f8f8f8f8f8f8f6e0e6f8f8f8f8f8f8f8f8f8f8f8f8e3e2f6f8f8f8f8f8f8f8f8f8f8f8eadff2f8f8f8f8f8f8f8f8f8f8f8eee0edf8f8f8f8f8f8f8f8f8f8f8f2e1eaf8f8f8f8f8f8f7|fcfbebf8f8f8f8f8f8f8f8f8f8f8f8f5e5f1f8f8f8f8f8f8f8f8f8f8f8f6e6f0f8f8f8f8f8f8f8f8f8f8f8f8ebeaf8f8f8f8f8f8f8f8f8f8f8f8efe7f6f8f8f8f8f8f8f8f8f8f8f8f4e6f2f8f8f8f8f8f8f8f8f8f8f8f5e6f1f8f8f8f8f8f8f7" data-src="../img/opt/checkout-fama.webp" alt="Checkout a la medida de FAMA" loading="lazy" decoding="async" /></div>
+              <div class="slide"><img data-lum="e9c7d8e6f7f8f8f8f8f8f8f8f8f6f8f8f8f8f8f5e2dbe4f8f8f8f8f8f8f8f8f8f8f8f8f8f8f6e2dbe5f8f8f8f8f8f8f8f8f8f8f8f8f8f8f5e1dce7f8f8f8f8f8f8f8f8f8f8f8f8f8f8f5e0dce6f8f8f8f8f8f8f8f8f8f8f8f8f8f8f5dddde9f4|e5f6ffe8f6f8f8f8f8f8f8f8f8f7f8f8f8f8f8f6eee6eff8f8f8f8f8f8f8f8f8f8f8f8f8f8f6eee6eff8f8f8f8f8f8f8f8f8f8f8f8f8f8f5ede7eff8f8f8f8f8f8f8f8f8f8f8f8f8f8f5ede7eff8f8f8f8f8f8f8f8f8f8f8f8f8f8f5ebe8f0f4" data-src="../img/opt/recibo-fama.webp" alt="Recibo personalizado de FAMA" loading="lazy" decoding="async" /></div>
+              <button type="button" class="nav-btn prev-btn" aria-label="Anterior"><svg viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><path d="M696 533C708 521 713 504 713 487 713 471 708 454 696 446L400 146C388 133 375 125 354 125 338 125 325 129 313 142 300 154 292 171 292 187 292 204 296 221 308 233L563 492 304 771C292 783 288 800 288 817 288 833 296 850 308 863 321 871 338 875 354 875 371 875 388 867 400 854L696 533Z"></path></svg></button>
+              <button type="button" class="nav-btn next-btn" aria-label="Siguiente"><svg viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><path d="M696 533C708 521 713 504 713 487 713 471 708 454 696 446L400 146C388 133 375 125 354 125 338 125 325 129 313 142 300 154 292 171 292 187 292 204 296 221 308 233L563 492 304 771C292 783 288 800 288 817 288 833 296 850 308 863 321 871 338 875 354 875 371 875 388 867 400 854L696 533Z"></path></svg></button>
+              <span class="slide-counter micro">01 / 03</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill"><span>🚀</span></div></div>
+            <div class="thumbs">
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/apply-fama.webp" alt="" loading="lazy" decoding="async" /></button>
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/checkout-fama.webp" alt="" loading="lazy" decoding="async" /></button>
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/recibo-fama.webp" alt="" loading="lazy" decoding="async" /></button>
+            </div>
+          </div>
+          <p class="proj-desc">
+            Asistente de inscripción: curso, fecha, modalidad y plan de pago, con cargos y descuentos calculados. Plugins de WordPress a la medida con WooCommerce, Stripe, Zapier y GoHighLevel.
+          </p>
+        </article>
+
+        <!-- Project: danikmedspa -->
+        <article class="project">
+          <header class="proj-head">
+            <h4 class="proj-name glitch" data-text="danikmedspa.com">danikmedspa.com</h4>
+            <dl class="proj-meta micro">
+              <div><dd>WordPress, Elementor, WooCommerce, HTML, CSS, JS</dd></div>
+            </dl>
+          </header>
+          <div class="slider" data-slider>
+            <div class="slider-main tall">
+              <div class="slide"><img data-lum="31545b56390e1d42525b5f6df3f3f3f3f3f3f3f3f3f3f3f3f34432313130302f2f2d2928283af6f6f6f6f6f6f6f6f6f6f6f6f6f4f3f3f3f3f3f3f3f3f3f6fffffffffffffdf6f6f6f6f6f6f6f6f62f191818181818181717171616161616161d|2c4351493f331e1b26323743eaf3f3f3f3f3f3f3f3f3f3e0e0402e2d2d2c2b2b2b2b2b221433f6f6f6f6f6f6f6f6f6f6e2e4f6f5f3f3f3f3f3f3f3f3e9e1f7fefefefefefcf6f6f6eee1eef6f6f6554343424242422c31414142424243434348" data-src="../img/opt/home%20danik.webp" alt="Página de inicio de Danik Med Spa" loading="lazy" decoding="async" /></div>
+              <div class="slide"><img data-lum="4d65686b6d6d6fe6fffffffffffffffffffffc1733ffffffffff5f2326292c2f64f6f6f6f6f6f6f6f6f6f6f6f6fffffffffffffffffffffffffffffdfcfaf8f7fcfffffff9f6f6f6f6f6f6f6f6f6f6f6f62e1b1818181717161616aff6f6f6f6|47543f242f2a27d8fefefefefdf9fefefefefb3152fefefefefe582b2e30333562e9f6f6f6f6f6f2edf6f6f6f6fef6f9fefefefefef2fdfefefefefceef9f8f7fcfefef1f9f6f6f6f6f2ecf6f6f6f6f6eb4e424242414134414343bef6f6e9f6" data-src="../img/opt/services%20danik.webp" alt="Servicios de Danik Med Spa" loading="lazy" decoding="async" /></div>
+              <button type="button" class="nav-btn prev-btn" aria-label="Anterior"><svg viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><path d="M696 533C708 521 713 504 713 487 713 471 708 454 696 446L400 146C388 133 375 125 354 125 338 125 325 129 313 142 300 154 292 171 292 187 292 204 296 221 308 233L563 492 304 771C292 783 288 800 288 817 288 833 296 850 308 863 321 871 338 875 354 875 371 875 388 867 400 854L696 533Z"></path></svg></button>
+              <button type="button" class="nav-btn next-btn" aria-label="Siguiente"><svg viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><path d="M696 533C708 521 713 504 713 487 713 471 708 454 696 446L400 146C388 133 375 125 354 125 338 125 325 129 313 142 300 154 292 171 292 187 292 204 296 221 308 233L563 492 304 771C292 783 288 800 288 817 288 833 296 850 308 863 321 871 338 875 354 875 371 875 388 867 400 854L696 533Z"></path></svg></button>
+              <span class="slide-counter micro">01 / 02</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill"><span>🚀</span></div></div>
+            <div class="thumbs">
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/home%20danik.webp" alt="" loading="lazy" decoding="async" /></button>
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/services%20danik.webp" alt="" loading="lazy" decoding="async" /></button>
+            </div>
+          </div>
+          <p class="proj-desc">
+          Rediseño del sitio principal del med spa, pensado para convertir visitas en solicitudes de consulta gratuita. También me encargo de su mantenimiento y SEO.
+          </p>
+        </article>
+
+        <!-- Project: danikdeals -->
+        <article class="project">
+          <header class="proj-head">
+            <h4 class="proj-name glitch" data-text="danikdeals.com">danikdeals.com</h4>
+            <dl class="proj-meta micro">
+              <div><dd>WordPress, Elementor, WooCommerce, HTML, CSS, JS</dd></div>
+            </dl>
+          </header>
+          <div class="slider" data-slider>
+            <div class="slider-main tall">
+              <div class="slide"><img data-lum="254be7e5d4d8dad9dadadad9d8d8d8d8d8d8d7d6d6d5e4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4b88383858687d6ebebebebecedeae7|254bfcfac2c0c1cec1b6b4b9c6d1cec4bcb9b8babbbbd7f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f49d4b4b4b4b4bbad6d6d6d8d8d8d8da" data-src="../img/opt/home%20danikdeals.webp" alt="Página de inicio de Danik Deals" loading="lazy" decoding="async" /></div>
+              <div class="slide"><img data-lum="2553e3eee5f4f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5|2554fcf9e5f4f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5" data-src="../img/opt/memershipdanikdeals.webp" alt="Membresía de Danik Deals" loading="lazy" decoding="async" /></div>
+              <button type="button" class="nav-btn prev-btn" aria-label="Anterior"><svg viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><path d="M696 533C708 521 713 504 713 487 713 471 708 454 696 446L400 146C388 133 375 125 354 125 338 125 325 129 313 142 300 154 292 171 292 187 292 204 296 221 308 233L563 492 304 771C292 783 288 800 288 817 288 833 296 850 308 863 321 871 338 875 354 875 371 875 388 867 400 854L696 533Z"></path></svg></button>
+              <button type="button" class="nav-btn next-btn" aria-label="Siguiente"><svg viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><path d="M696 533C708 521 713 504 713 487 713 471 708 454 696 446L400 146C388 133 375 125 354 125 338 125 325 129 313 142 300 154 292 171 292 187 292 204 296 221 308 233L563 492 304 771C292 783 288 800 288 817 288 833 296 850 308 863 321 871 338 875 354 875 371 875 388 867 400 854L696 533Z"></path></svg></button>
+              <span class="slide-counter micro">01 / 02</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill"><span>🚀</span></div></div>
+            <div class="thumbs">
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/home%20danikdeals.webp" alt="" loading="lazy" decoding="async" /></button>
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/memershipdanikdeals.webp" alt="" loading="lazy" decoding="async" /></button>
+            </div>
+          </div>
+          <p class="proj-desc">
+          La tienda de ofertas en línea del med spa, impulsada por promociones de temporada y campañas de precio. Rediseño, mantenimiento continuo y SEO.
+          </p>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ============ FREELANCE ============ -->
+    <section id="freelance" class="rule company-sec">
+      <span class="sec-streak ss-b" aria-hidden="true"></span>
+      <span class="deco-word section-wm">FREELANCE</span>
+      <div class="deco-dots dd3"></div>
+      <span class="deco-plus dp9">+</span>
+      <span class="deco-plus dp13">+</span>
+      <span class="deco-shape ds-ci s6"></span>
+      <span class="deco-shape ds-tri s12"></span>
+      <div class="container">
+        <div class="section-head">
+          <span class="big-num glitch" data-text="02.">02.</span>
+          <h2 class="section-title glitch" data-text="Freelance">Freelance</h2>
+          <p class="head-loc">Remoto · Medellín, <span class="loc-end">COL <svg class="flag" viewBox="0 0 12 8" aria-hidden="true" focusable="false" shape-rendering="crispEdges"><path fill="#fcd116" d="M0 0h12v4H0z"/><path fill="#003893" d="M0 4h12v2H0z"/><path fill="#ce1126" d="M0 6h12v2H0z"/></svg></span></p>
+        </div>
+
+        <div class="exp-intro">
+          <span class="proj-num">Sep 2023 – May 2024</span>
+          <h3 class="exp-role glitch" data-text="Diseñador UI &amp; Gráfico">Diseñador UI &amp; Gráfico</h3>
+        </div>
+
+        <h3 class="projects-title glitch" data-text="Trabajos destacados">Trabajos destacados</h3>
+
+        <article class="project" data-name="Diseño de marca &amp; UI">
+          <div class="design-grid">
+            <button type="button" class="design-item"><img data-src="../img/opt/softask.webp" alt="Softask: prototipo interactivo en Figma de una app de gestión de tareas" loading="lazy" /></button>
+            <button type="button" class="design-item"><img data-src="../img/opt/avril.webp" alt="App Avril: prototipo interactivo en Figma de una app web de gestión de estaciones de servicio" loading="lazy" /></button>
+            <button type="button" class="design-item"><img data-src="../img/opt/design1.webp"  alt="Pieza de diseño gráfico" loading="lazy" /></button>
+            <button type="button" class="design-item"><img data-src="../img/opt/design2.webp"  alt="Pieza de diseño gráfico" loading="lazy" /></button>
+            <button type="button" class="design-item"><img data-src="../img/opt/design3.webp"  alt="Pieza de diseño gráfico" loading="lazy" /></button>
+            <button type="button" class="design-item"><img data-src="../img/opt/design4.webp"  alt="Pieza de diseño gráfico" loading="lazy" /></button>
+            <button type="button" class="design-item"><img data-src="../img/opt/design5.webp"  alt="Pieza de diseño gráfico" loading="lazy" /></button>
+            <button type="button" class="design-item"><img data-src="../img/opt/design6.webp"  alt="Pieza de diseño gráfico" loading="lazy" /></button>
+            <button type="button" class="design-item"><img data-src="../img/opt/design7.webp"  alt="Pieza de diseño gráfico" loading="lazy" /></button>
+            <button type="button" class="design-item"><img data-src="../img/opt/design8.webp"  alt="Pieza de diseño gráfico" loading="lazy" /></button>
+            <button type="button" class="design-item"><img data-src="../img/opt/design9.webp"  alt="Pieza de diseño gráfico" loading="lazy" /></button>
+            <button type="button" class="design-item"><img data-src="../img/opt/design10.webp" alt="Anuncio del helado artesanal de café Ben Fatto" loading="lazy" /></button>
+          </div>
+          <p class="proj-desc">
+            Identidades de marca para pequeñas empresas y rediseños de UI con prototipos interactivos en Figma para una app de tareas y una app web de estaciones de servicio.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ BAMBUCO ============ -->
+    <section id="bambuco" class="rule company-sec">
+      <span class="sec-streak ss-c" aria-hidden="true"></span>
+      <span class="deco-word section-wm">BAMBUCO</span>
+      <div class="deco-dots dd6"></div>
+      <span class="deco-plus dp14">+</span>
+      <div class="deco-ring-sm dr5"></div>
+      <span class="deco-shape ds-tri s7"></span>
+      <span class="deco-shape ds-tri s13"></span>
+      <div class="container">
+        <div class="section-head">
+          <span class="big-num glitch" data-text="03.">03.</span>
+          <h2 class="section-title glitch" data-text="BambuCo">BambuCo</h2>
+          <p class="head-loc">Remoto · Medellín, <span class="loc-end">COL <svg class="flag" viewBox="0 0 12 8" aria-hidden="true" focusable="false" shape-rendering="crispEdges"><path fill="#fcd116" d="M0 0h12v4H0z"/><path fill="#003893" d="M0 4h12v2H0z"/><path fill="#ce1126" d="M0 6h12v2H0z"/></svg></span></p>
+        </div>
+
+        <div class="exp-intro">
+          <span class="proj-num">Jul 2022 – Jul 2023</span>
+          <h3 class="exp-role glitch" data-text="Desarrollador de Software">Desarrollador de Software</h3>
+          <div class="exp-sites">
+            <a href="https://github.com/bambuco/moodle-block_ludifica" target="_blank" rel="noopener" class="site-pill" data-sound="tilin" data-projs="0"><svg class="gh-ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>block_ludifica ↗</a>
+            <a href="https://github.com/UdeMedellin/moodle-theme_abierta" target="_blank" rel="noopener" class="site-pill" data-sound="tilin" data-projs="0"><svg class="gh-ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>theme_abierta ↗</a>
+            <a href="https://github.com/bambuco/moodle-block_vitrina" target="_blank" rel="noopener" class="site-pill" data-sound="tilin" data-projs="1"><svg class="gh-ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>block_vitrina ↗</a>
+            <a href="https://uvirtualabierta.udemedellin.edu.co/blocks/vitrina/?view=default&amp;id=8720" target="_blank" rel="noopener" class="site-pill" data-sound="tilin" data-projs="1"><svg class="web-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9.5"/><ellipse cx="12" cy="12" rx="4.2" ry="9.5"/><path d="M3.5 8.6h17M3.5 15.4h17"/></svg>UVirtual Abierta ↗</a>
+          </div>
+        </div>
+
+        <h3 class="projects-title glitch" data-text="Proyectos">Proyectos</h3>
+
+        <article class="project">
+          <header class="proj-head">
+            <h4 class="proj-name glitch" data-text="Ludifica">Ludifica</h4>
+            <dl class="proj-meta micro">
+              <div><dd>HTML, CSS, PHP, jQuery, Mustache, Illustrator, Figma</dd></div>
+            </dl>
+          </header>
+          <div class="slider" data-slider>
+            <div class="slider-main">
+              <div class="slide"><img data-lum="fafefefeeac6cddcf0fefefefefefdf8f5f3f2f2f2f3f5fafdfefefefefeefefedeff5fdfefee0e2d7fefefefde5e7f2fefefee4d0d0fdfee7acabb7a69bcaf8f8f0ece1d7e7ecfdfef7e4d8f5fefef0e1e2e4eadfe0d4f7eee6dde3e7fdfefe|fbfffffffffffffffbffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" data-src="../img/opt/beforeux.webp" alt="Ludifica antes del rediseño" loading="lazy" decoding="async" /><span class="slide-tag">Antes</span></div>
+              <div class="slide"><img data-lum="fffffffffdfefefefdfcfcfcfcfcfdfefdecf7f1edf7edf6fefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefce3dfdfe4fafefdffffff|fffffffffcfefefefefefefefefedad0d0d1d4d1d1d1d2d0d0d1d1dffdfdfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcf0e8e7e5e3e3e6e7e3d4c8ccd6dee3e6e8e9e8f9fefdffffff" data-src="../img/opt/ludifica1.webp" alt="Ludifica después del rediseño" loading="lazy" decoding="async" /><span class="slide-tag">Después</span></div>
+              <div class="slide"><img data-lum="37373738373636356169656545353d716a5a68724e343636363636363536363534343434343b3f3d403e3d40413d423d403c3d3e3d3f414234343434333536363636363636373737373636363636363535353535353535353434343434343434|3939393939393939393939393939393939393939393939393a3a3a3a3a3939393939393939393939393a3a3939393939393939393a3a3a3a3a3a3a3a393939393a3a3a3a39383838383737373736363635353535363535343434343434343434" data-src="../img/opt/ludifica2.webp" alt="Ludifica después del rediseño" loading="lazy" decoding="async" /><span class="slide-tag">Después</span></div>
+              <div class="slide"><img data-lum="3e404c3a393d4d3942364a545051494e4f3f443b353036353433323738393a39393a3b3b3b3c3c3b3c3c3d3d3d3d3e3f3e3f3f3f3f403f3f434c5b5f50494d4c4a4948484769452a2a4872605f312e2a33332a29292929292931302a29292929|4c4b523c3d3e3e3d4044443f3c3b3a3a37373737373737364a444445454647474646464b535e453f3f3937434c4e4e4a45454443486155353b3a3938373636436b6b6f686a654d3536373a37373a3b38393f3c40443a3b3c3d403c3a3d3f3a36" data-src="../img/opt/ludifica3.webp" alt="Ludifica después del rediseño" loading="lazy" decoding="async" /><span class="slide-tag">Después</span></div>
+              <div class="slide"><img data-lum="3a364139363942373d344247464a4649493e413a3532363534343337383a3a3939393a3a3a3a3b3b3b3b3c3c3d3d3d3e3e3f3f3f3f3f3f3f424a575b4d474b4a494847464560422c2c4567575732302c34342c2b2b2b2b2b2b32312c2b2b312a|4c4b4931383c32323131313131313131313131313131313035343434343435353434343434343434343434343434343434343434353b372f303030302f2f2f2f2f2f2f2f2f2f2f2f2f2f312f3031302f2f31303031313132323331302f2f3637" data-src="../img/opt/ludifica4.webp" alt="Ludifica después del rediseño" loading="lazy" decoding="async" /><span class="slide-tag">Después</span></div>
+              <button type="button" class="nav-btn prev-btn" aria-label="Anterior"><svg viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><path d="M696 533C708 521 713 504 713 487 713 471 708 454 696 446L400 146C388 133 375 125 354 125 338 125 325 129 313 142 300 154 292 171 292 187 292 204 296 221 308 233L563 492 304 771C292 783 288 800 288 817 288 833 296 850 308 863 321 871 338 875 354 875 371 875 388 867 400 854L696 533Z"></path></svg></button>
+              <button type="button" class="nav-btn next-btn" aria-label="Siguiente"><svg viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><path d="M696 533C708 521 713 504 713 487 713 471 708 454 696 446L400 146C388 133 375 125 354 125 338 125 325 129 313 142 300 154 292 171 292 187 292 204 296 221 308 233L563 492 304 771C292 783 288 800 288 817 288 833 296 850 308 863 321 871 338 875 354 875 371 875 388 867 400 854L696 533Z"></path></svg></button>
+              <span class="slide-counter micro">01 / 05</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill"><span>🚀</span></div></div>
+            <div class="thumbs">
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/beforeux.webp" alt="" loading="lazy" decoding="async" /></button>
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/ludifica1.webp" alt="" loading="lazy" decoding="async" /></button>
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/ludifica2.webp" alt="" loading="lazy" decoding="async" /></button>
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/ludifica3.webp" alt="" loading="lazy" decoding="async" /></button>
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/ludifica4.webp" alt="" loading="lazy" decoding="async" /></button>
+            </div>
+          </div>
+          <p class="proj-desc">
+            Bloque de gamificación para Moodle. Desarrollé la opción de compartir insignias, la ayuda dinámica, los puntos por completar actividades y las plantillas Default, Eliza y UVirtual Abierta.
+          </p>
+        </article>
+
+        <article class="project">
+          <header class="proj-head">
+            <h4 class="proj-name glitch" data-text="Vitrina">Vitrina</h4>
+            <dl class="proj-meta micro">
+              <div><dd>PHP, Mustache, JavaScript, CSS</dd></div>
+            </dl>
+          </header>
+          <div class="slider" data-slider>
+            <div class="slider-main">
+              <div class="slide"><img data-lum="fefefed5c1f4fefeced8fee6eefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefed19593939395c5fefefe|fffffffffffffffffffffffffcffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffcc8b8989898bbfffffff" data-src="../img/opt/vitrina1.webp" alt="Bloque Vitrina en la página de inicio de Moodle con las pestañas de cursos Todos, Próximos y Destacados" loading="lazy" decoding="async" /></div>
+              <div class="slide"><img data-lum="5d7073ffffdecefffffffffffffffffffffffbfefbfbd1f0f3ebe6eaf3ebe6e8f0f6fcd9f0f2e9fdd3fdf3eff0f6f0ecedf4f5ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff915d5d|a2b4adfffffffffffffffffffffffffffffffffffcf6f6fafafaf5f9fffffffffff5e9e8e9e8e8e6e7fdfffffffffcf8f8e6e6eef3eafefffffffffffbf7f8f5e9eff1ebffffffffffefe4ece5e8ede5e2ffffffffffbb6998fffffffec1a39c" data-src="../img/opt/vitrina2.webp" alt="Catálogo de cursos de la Universidad de Medellín hecho con Vitrina, con filtros de categoría, idioma y licencia" loading="lazy" decoding="async" /></div>
+              <div class="slide"><img data-lum="fffffbd4d4eefffffafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafaface4b4b4b4b4b4bf0ffff|ffffe6cdf1fffffffaf9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f8f8f8f8f8f8f8f9ca383939393938efffff" data-src="../img/opt/vitrina3.webp" alt="Vitrina de cursos con insignias premium y un curso próximo" loading="lazy" decoding="async" /></div>
+              <button type="button" class="nav-btn prev-btn" aria-label="Anterior"><svg viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><path d="M696 533C708 521 713 504 713 487 713 471 708 454 696 446L400 146C388 133 375 125 354 125 338 125 325 129 313 142 300 154 292 171 292 187 292 204 296 221 308 233L563 492 304 771C292 783 288 800 288 817 288 833 296 850 308 863 321 871 338 875 354 875 371 875 388 867 400 854L696 533Z"></path></svg></button>
+              <button type="button" class="nav-btn next-btn" aria-label="Siguiente"><svg viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><path d="M696 533C708 521 713 504 713 487 713 471 708 454 696 446L400 146C388 133 375 125 354 125 338 125 325 129 313 142 300 154 292 171 292 187 292 204 296 221 308 233L563 492 304 771C292 783 288 800 288 817 288 833 296 850 308 863 321 871 338 875 354 875 371 875 388 867 400 854L696 533Z"></path></svg></button>
+              <span class="slide-counter micro">01 / 03</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill"><span>🚀</span></div></div>
+            <div class="thumbs">
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/vitrina1.webp" alt="" loading="lazy" decoding="async" /></button>
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/vitrina2.webp" alt="" loading="lazy" decoding="async" /></button>
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/vitrina3.webp" alt="" loading="lazy" decoding="async" /></button>
+            </div>
+          </div>
+          <p class="proj-desc">
+            Bloque de Moodle que muestra los cursos disponibles. Desarrollé las vistas por pestañas, el ordenamiento, la configuración de filtros y la validación de consultas, siguiendo los estándares de código de Moodle.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ CONFIAR ============ -->
+    <section id="confiar" class="rule company-sec">
+      <span class="sec-streak ss-a" aria-hidden="true"></span>
+      <span class="deco-word section-wm">CONFIAR</span>
+      <div class="deco-dots dd7"></div>
+      <span class="deco-plus dp15">+</span>
+      <span class="deco-plus dp16">+</span>
+      <div class="deco-ring-sm dr6"></div>
+      <span class="deco-shape ds-tri s14"></span>
+      <div class="container">
+        <div class="section-head">
+          <span class="big-num glitch" data-text="04.">04.</span>
+          <h2 class="section-title glitch" data-text="Confiar">Confiar</h2>
+          <p class="head-loc">Presencial · Medellín, <span class="loc-end">COL <svg class="flag" viewBox="0 0 12 8" aria-hidden="true" focusable="false" shape-rendering="crispEdges"><path fill="#fcd116" d="M0 0h12v4H0z"/><path fill="#003893" d="M0 4h12v2H0z"/><path fill="#ce1126" d="M0 6h12v2H0z"/></svg></span></p>
+        </div>
+
+        <div class="exp-intro">
+          <span class="proj-num">Jun 2018 – Jun 2022</span>
+          <h3 class="exp-role glitch" data-text="Analista de Educación Virtual">Analista de Educación Virtual</h3>
+          <div class="exp-sites">
+            <a href="https://www.confiar.coop/" target="_blank" rel="noopener" class="site-pill" data-sound="tilin"><svg class="web-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9.5"/><ellipse cx="12" cy="12" rx="4.2" ry="9.5"/><path d="M3.5 8.6h17M3.5 15.4h17"/></svg>confiar.coop ↗</a>
+            <a href="https://escuela.confiar.coop/" target="_blank" rel="noopener" class="site-pill" data-projs="0,1" data-sound="tilin"><svg class="web-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9.5"/><ellipse cx="12" cy="12" rx="4.2" ry="9.5"/><path d="M3.5 8.6h17M3.5 15.4h17"/></svg>escuela.confiar.coop ↗</a>
+            <p class="exp-note">También administré el Moodle de la Escuela Confiar, monté y di soporte a un sitio WordPress interno y apoyé estrategias de mercadeo y gestión del conocimiento.</p>
+          </div>
+        </div>
+
+        <h3 class="projects-title glitch" data-text="Proyectos">Proyectos</h3>
+
+        <article class="project">
+          <header class="proj-head">
+            <h4 class="proj-name glitch" data-text="Universo CRM">Universo CRM</h4>
+            <dl class="proj-meta micro">
+              <div><dd>HTML, CSS, Moodle, Illustrator, H5P, After Effects, Premiere Pro</dd></div>
+            </dl>
+          </header>
+          <div class="slider" data-slider>
+            <div class="slider-main">
+              <div class="slide"><video data-src="../video/crm.mp4" preload="none" muted loop playsinline></video></div>
+              <div class="slide"><img data-lum="0b050505060f171917140f0a070607080a0d11181b1d212528292b2d2f34383a3a3735353b3b3c3b433c41464c565d656d747b7d7e828383817f81817c756860534a46454546464c555e6467666970716b634c3f2f130a0b0a09080808090705|0a04040404030e231c1e1c1a1a1a1c1d1b1b08080405080404040404100b060604040406040404041d08050804040406040504040404040405050405050505050505060a0505060505050607070707071b0a0707070707070707070807070707" data-src="../img/opt/crm2.webp" alt="Universo CRM" loading="lazy" decoding="async" /></div>
+              <div class="slide"><video data-src="../video/crm3.mp4" preload="none" muted loop playsinline></video></div>
+              <div class="slide"><video data-src="../video/crm4.mp4" preload="none" muted loop playsinline></video></div>
+              <div class="slide"><video data-src="../video/crm_animation.mp4" preload="none" muted loop playsinline></video></div>
+              <button type="button" class="nav-btn prev-btn" aria-label="Anterior"><svg viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><path d="M696 533C708 521 713 504 713 487 713 471 708 454 696 446L400 146C388 133 375 125 354 125 338 125 325 129 313 142 300 154 292 171 292 187 292 204 296 221 308 233L563 492 304 771C292 783 288 800 288 817 288 833 296 850 308 863 321 871 338 875 354 875 371 875 388 867 400 854L696 533Z"></path></svg></button>
+              <button type="button" class="nav-btn next-btn" aria-label="Siguiente"><svg viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><path d="M696 533C708 521 713 504 713 487 713 471 708 454 696 446L400 146C388 133 375 125 354 125 338 125 325 129 313 142 300 154 292 171 292 187 292 204 296 221 308 233L563 492 304 771C292 783 288 800 288 817 288 833 296 850 308 863 321 871 338 875 354 875 371 875 388 867 400 854L696 533Z"></path></svg></button>
+              <span class="slide-counter micro">01 / 05</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill"><span>🚀</span></div></div>
+            <div class="thumbs">
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/crm.webp" alt="" loading="lazy" decoding="async" /></button>
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/crm2.webp" alt="" loading="lazy" decoding="async" /></button>
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/crm3.webp" alt="" loading="lazy" decoding="async" /></button>
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/crm4.webp" alt="" loading="lazy" decoding="async" /></button>
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/crm_animation.webp" alt="" loading="lazy" decoding="async" /></button>
+            </div>
+          </div>
+          <p class="proj-desc">
+            Curso gamificado con temática espacial que capacitó al personal de más de 50 agencias en el CRM de la empresa. Diseño instruccional y recursos web, con seguimiento en Moodle.
+          </p>
+        </article>
+
+        <article class="project">
+          <header class="proj-head">
+            <h4 class="proj-name glitch" data-text="Eso a mí no me pasa">Eso a mí no me pasa</h4>
+            <dl class="proj-meta micro">
+              <div><dd>HTML, CSS, Moodle, Illustrator, Photoshop, After Effects, Premiere Pro</dd></div>
+            </dl>
+          </header>
+          <div class="slider" data-slider>
+            <div class="slider-main">
+              <div class="slide"><video data-src="../video/eamnmp1.mp4" preload="none" muted loop playsinline></video></div>
+              <div class="slide"><img data-lum="08070707080d111213131717120f100e0a070707070707070724627a7e7a79869c9289807d7d7d7d7d7d8b8c6e6d55453c383433383b32242d32393430312a2017140d090708080e1813100f0f111310121313121313110708080a0a0b0d0d0c|070707090d080d100e080a0f0e0e11100e0f11101412110807070707091612141c344f687377867a7875746d61513e1a0e0d0b0d2030445e606561605d5c564f49473b252c2a1e1716191d1e211d1b161512100f10110a180c0f0d0911080c0a" data-src="../img/opt/eamnmp2.webp" alt="Eso a mí no me pasa" loading="lazy" decoding="async" /></div>
+              <div class="slide"><video data-src="../video/eamnmp3.mp4" preload="none" muted loop playsinline></video></div>
+              <button type="button" class="nav-btn prev-btn" aria-label="Anterior"><svg viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><path d="M696 533C708 521 713 504 713 487 713 471 708 454 696 446L400 146C388 133 375 125 354 125 338 125 325 129 313 142 300 154 292 171 292 187 292 204 296 221 308 233L563 492 304 771C292 783 288 800 288 817 288 833 296 850 308 863 321 871 338 875 354 875 371 875 388 867 400 854L696 533Z"></path></svg></button>
+              <button type="button" class="nav-btn next-btn" aria-label="Siguiente"><svg viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><path d="M696 533C708 521 713 504 713 487 713 471 708 454 696 446L400 146C388 133 375 125 354 125 338 125 325 129 313 142 300 154 292 171 292 187 292 204 296 221 308 233L563 492 304 771C292 783 288 800 288 817 288 833 296 850 308 863 321 871 338 875 354 875 371 875 388 867 400 854L696 533Z"></path></svg></button>
+              <span class="slide-counter micro">01 / 03</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill"><span>🚀</span></div></div>
+            <div class="thumbs">
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/eamnmp1.webp" alt="" loading="lazy" decoding="async" /></button>
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/eamnmp2.webp" alt="" loading="lazy" decoding="async" /></button>
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/eamnmp3.webp" alt="" loading="lazy" decoding="async" /></button>
+            </div>
+          </div>
+          <p class="proj-desc">
+            Capacitación en prevención de riesgos con historias ilustradas, videos y actividades SCORM/H5P. Ayudé a construir el curso y sus recursos en Moodle.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ VOLUNTEERING ============ -->
+    <section id="volunteering" class="rule company-sec">
+      <span class="sec-streak ss-a" aria-hidden="true"></span>
+      <span class="deco-word section-wm">VOLUNTARIADO</span>
+      <div class="deco-dots dd2"></div>
+      <div class="deco-ring-sm dr2"></div>
+      <span class="deco-plus dp7">+</span>
+      <span class="deco-plus dp8">+</span>
+      <span class="deco-shape ds-tri s15"></span>
+      <div class="container">
+        <div class="section-head">
+          <span class="big-num glitch" data-text="05.">05.</span>
+          <h2 class="section-title glitch" data-text="Voluntariado">Voluntariado</h2>
+          <p class="head-loc">Remoto · Medellín, <span class="loc-end">COL <svg class="flag" viewBox="0 0 12 8" aria-hidden="true" focusable="false" shape-rendering="crispEdges"><path fill="#fcd116" d="M0 0h12v4H0z"/><path fill="#003893" d="M0 4h12v2H0z"/><path fill="#ce1126" d="M0 6h12v2H0z"/></svg></span></p>
+        </div>
+
+        <div class="exp-intro">
+          <span class="proj-num">Abr 2021 – Oct 2021</span>
+          <h3 class="exp-role glitch" data-text="Líder Creativo">Líder Creativo</h3>
+          <div class="exp-sites">
+            <a href="https://www.eafit.edu.co/noticias/lo-que-esta-pasando/ganadores-eafitenses-crearon-un-proyecto-con-el-que-triunfaron-en-la" target="_blank" rel="noopener" class="site-pill" data-sound="tilin" data-show-projs="0" data-projs="0"><svg class="web-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9.5"/><ellipse cx="12" cy="12" rx="4.2" ry="9.5"/><path d="M3.5 8.6h17M3.5 15.4h17"/></svg>Hackathon ganado · EAFIT ↗</a>
+          </div>
+        </div>
+
+        <h3 class="projects-title glitch" data-text="Proyectos">Proyectos</h3>
+
+        <article class="project">
+          <header class="proj-head">
+            <h4 class="proj-name glitch" data-text="Career Recommendation">Career Recommendation</h4>
+            <dl class="proj-meta micro">
+              <div><dd>React.js, Illustrator, After Effects, Premiere Pro</dd></div>
+            </dl>
+          </header>
+          <div class="slider" data-slider>
+            <div class="slider-main">
+              <div class="slide"><video data-src="../video/cr1.mp4" preload="none" muted loop playsinline></video></div>
+              <div class="slide"><img data-lum="ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff|ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" data-src="../img/opt/cr2.webp" alt="Career Recommendation" loading="lazy" decoding="async" /></div>
+              <div class="slide"><img data-lum="30303030303030303030303030303030569a9fa0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a09e98919090909393939393939393939493939393949493939393999ea0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a1a1a1a1a1a1|30303030303030303030303030303030569ba0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a09f9c8f877c7f8e8f87838380858a7f787b86868181818181818182899a9fa0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a1a1a1a1a1a1a1" data-src="../img/opt/cr3.webp" alt="Career Recommendation" loading="lazy" decoding="async" /></div>
+              <div class="slide"><img data-lum="60606060606060606060606060605f3b3636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363b58606060606060606060606060|6060606060606060606060606060603a3636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636373f58606060606060606060606060" data-src="../img/opt/cr4.webp" alt="Career Recommendation" loading="lazy" decoding="async" /></div>
+              <button type="button" class="nav-btn prev-btn" aria-label="Anterior"><svg viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><path d="M696 533C708 521 713 504 713 487 713 471 708 454 696 446L400 146C388 133 375 125 354 125 338 125 325 129 313 142 300 154 292 171 292 187 292 204 296 221 308 233L563 492 304 771C292 783 288 800 288 817 288 833 296 850 308 863 321 871 338 875 354 875 371 875 388 867 400 854L696 533Z"></path></svg></button>
+              <button type="button" class="nav-btn next-btn" aria-label="Siguiente"><svg viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><path d="M696 533C708 521 713 504 713 487 713 471 708 454 696 446L400 146C388 133 375 125 354 125 338 125 325 129 313 142 300 154 292 171 292 187 292 204 296 221 308 233L563 492 304 771C292 783 288 800 288 817 288 833 296 850 308 863 321 871 338 875 354 875 371 875 388 867 400 854L696 533Z"></path></svg></button>
+              <span class="slide-counter micro">01 / 04</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill"><span>🚀</span></div></div>
+            <div class="thumbs">
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/cr1.webp" alt="" loading="lazy" decoding="async" /></button>
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/cr2.webp" alt="" loading="lazy" decoding="async" /></button>
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/cr3.webp" alt="" loading="lazy" decoding="async" /></button>
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/cr4.webp" alt="" loading="lazy" decoding="async" /></button>
+            </div>
+          </div>
+          <p class="proj-desc">
+            App ganadora del Microsoft Hackathon Colombia 2021 que recomienda carreras universitarias. Como líder creativo, dirigí el front-end, la identidad visual y el motion design.
+          </p>
+        </article>
+
+        <article class="project">
+          <header class="proj-head">
+            <h4 class="proj-name glitch" data-text="Placy App">Placy App</h4>
+            <dl class="proj-meta micro">
+              <div><dd>Illustrator</dd></div>
+            </dl>
+          </header>
+          <div class="slider" data-slider>
+            <div class="slider-main">
+              <div class="slide"><img data-lum="60606060605d48332b1c18120d0c0c0c0c0c100c08010b0a090909090501070909090902090c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0d0f182229384b5b606060|60606060605d4f3d2b1d19120d0d0604030303030303030303030a0b0b0b0b0b0b080303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030301050c0c12181d2c3f505e6060" data-src="../img/opt/placy1.webp" alt="Placy App" loading="lazy" decoding="async" /></div>
+              <div class="slide"><img data-lum="6060606060605a493730251e191818140d0d1115140d0d1016151615110d14151615150e0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d121818191b252e36455e60606060|606060606060604b3831251e1918190e0e0e0e0e0e0e0e0e0e0e15161616151616130e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0d1118191f2631395560606060" data-src="../img/opt/placy2.webp" alt="Placy App" loading="lazy" decoding="async" /></div>
+              <div class="slide"><img data-lum="6060606060605a493730251e191818140d0d1115140d0d1115151515110d13151515150e0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d121818191b252f3d4c5f60606060|606060606060604b3831251e1918110f0f0f0f0f0f0f0f0f0f0f15171616161616140f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0d1118181f2631395560606060" data-src="../img/opt/placy3.webp" alt="Placy App" loading="lazy" decoding="async" /></div>
+              <div class="slide"><img data-lum="6060606060605a493830251e191818140d0d1115130d0d1015141414100d13141414140e0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0f181818191b253041505f60606060|606060606060604b3831251e1918120f0e0f0f0f0f0f0f0f0f0f15161616161616140f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0e0e1118191f2631395560606060" data-src="../img/opt/placy4.webp" alt="Placy App" loading="lazy" decoding="async" /></div>
+              <button type="button" class="nav-btn prev-btn" aria-label="Anterior"><svg viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><path d="M696 533C708 521 713 504 713 487 713 471 708 454 696 446L400 146C388 133 375 125 354 125 338 125 325 129 313 142 300 154 292 171 292 187 292 204 296 221 308 233L563 492 304 771C292 783 288 800 288 817 288 833 296 850 308 863 321 871 338 875 354 875 371 875 388 867 400 854L696 533Z"></path></svg></button>
+              <button type="button" class="nav-btn next-btn" aria-label="Siguiente"><svg viewBox="0 0 1000 1000" aria-hidden="true" focusable="false"><path d="M696 533C708 521 713 504 713 487 713 471 708 454 696 446L400 146C388 133 375 125 354 125 338 125 325 129 313 142 300 154 292 171 292 187 292 204 296 221 308 233L563 492 304 771C292 783 288 800 288 817 288 833 296 850 308 863 321 871 338 875 354 875 371 875 388 867 400 854L696 533Z"></path></svg></button>
+              <span class="slide-counter micro">01 / 04</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill"><span>🚀</span></div></div>
+            <div class="thumbs">
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/placy1.webp" alt="" loading="lazy" decoding="async" /></button>
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/placy2.webp" alt="" loading="lazy" decoding="async" /></button>
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/placy3.webp" alt="" loading="lazy" decoding="async" /></button>
+              <button type="button" class="thumb"><img data-src="../img/opt/thumbs/placy4.webp" alt="" loading="lazy" decoding="async" /></button>
+            </div>
+          </div>
+          <p class="proj-desc">
+            App móvil para descubrir restaurantes, bares, parques y tiendas cercanas, con reseñas y cupones. Cocreé la idea, el modelo de negocio, la marca y la UI.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about" class="rule">
+      <span class="sec-streak ss-d" aria-hidden="true"></span>
+      <div class="tools-bg"></div>
+      <div class="hero-streak" aria-hidden="true"><span></span><span></span></div>
+      <span class="deco-word section-wm">SOBRE MÍ</span>
+      <div class="deco-dots dd5"></div>
+      <div class="deco-ring-sm dr4"></div>
+      <span class="deco-plus dp11">+</span>
+      <span class="deco-plus dp12">+</span>
+      <span class="deco-shape ds-ci s4"></span>
+      <span class="deco-shape ds-tri s10"></span>
+      <span class="side-label side-tr micro" aria-hidden="true">Portafolio · 2026 · Medellín · Colombia</span>
+      <div class="container">
+        <div class="section-head">
+          <span class="big-num glitch" data-text="06.">06.</span>
+          <h2 class="section-title glitch" data-text="Sobre mí">Sobre mí</h2>
+        </div>
+        <div class="about-grid">
+          <div class="about-img">
+            <div class="orb orb-c"></div>
+            <span class="about-frame"><video class="about-video" data-src="../video/about-saludo.mp4" data-poster="../img/opt/about-poster.webp" width="960" height="960" muted playsinline preload="none" aria-label="David Arias González saludando"></video></span>
+          </div>
+          <div class="about-text">
+            <div class="about-copy">
+            <p>
+              Mi curiosidad por la tecnología, el arte y la ciencia, mi dedicación y
+              mi creatividad me dieron las habilidades para destacar en los sectores
+              de educación, finanzas y salud.
+            </p>
+            <p>
+              Combino programación, análisis y multimedia, y uso la IA con
+              criterio para aportar valor a tu equipo.
+            </p>
+            <p>
+              <strong class="about-thanks">¡Abierto a nuevas oportunidades!</strong>
+            </p>
+            </div>
+            <div class="skills">
+              <span class="skill-tag">HTML / CSS / JS</span>
+              <span class="skill-tag">PHP</span>
+              <span class="skill-tag">WordPress</span>
+              <span class="skill-tag">WooCommerce</span>
+              <span class="skill-tag">Moodle</span>
+              <span class="skill-tag">SEO</span>
+              <span class="skill-tag">CWV</span>
+              <span class="skill-tag">Admin. de servidores</span>
+              <span class="skill-tag">Illustrator</span>
+              <span class="skill-tag">Photoshop</span>
+              <span class="skill-tag">Figma</span>
+              <span class="skill-tag">After Effects</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /#page -->
+
+  <script src="../script.js?v=20261030h"></script>
+</body>
+</html>
