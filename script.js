@@ -768,6 +768,7 @@ document.addEventListener('DOMContentLoaded', () => {
     lines.concat(pxEl, ampEl).forEach(e => {
       e.style.letterSpacing = ''; e.style.marginRight = ''; e.style.fontSize = ''; e.style.whiteSpace = '';
     });
+    if (role) { role.style.fontSize = ''; role.style.flexWrap = ''; }
     const inner = nameEl.closest('.hero-inner');
     if (inner) inner.style.removeProperty('--hero-w');
     const narrow = window.innerWidth < 720;   // móvil: sólo se iguala el nombre
@@ -798,6 +799,21 @@ document.addEventListener('DOMContentLoaded', () => {
         e.style.fontSize = (fs * avail / e.offsetWidth) + 'px';
       });
       target = avail;
+      // el rol en UNA línea: sin envolver y con la letra ajustada al ancho
+      // (en un iPhone partía "WEB DEVELOPER / & DESIGNER" en dos)
+      if (role) {
+        pxEl.style.whiteSpace = ampEl.style.whiteSpace = 'nowrap';
+        role.style.flexWrap = 'nowrap';
+        for (let k = 0; k < 2; k++) {
+          role.style.width = 'max-content';
+          const rw = role.offsetWidth;
+          role.style.width = '';
+          if (!rw || Math.abs(rw - target) < 1) break;
+          const fs = parseFloat(getComputedStyle(role).fontSize);
+          const pad = rw - pxEl.offsetWidth - ampEl.offsetWidth;   // relleno + hueco (no escalan)
+          role.style.fontSize = Math.min(fs * 1.25, fs * (target - pad) / (rw - pad)) + 'px';
+        }
+      }
     }
     // si el rol sin espaciado ya es más ancho que el nombre (una sola línea
     // corta), el nombre crece hasta el ancho del rol para que éste no envuelva
