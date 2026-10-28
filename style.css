@@ -5024,7 +5024,7 @@ body.fx-idle *, body.fx-idle *::before, body.fx-idle *::after {
 #loader img {
   width: 64px; height: 64px;
   image-rendering: pixelated;
-  animation: loaderSpin 1.2s cubic-bezier(.65,0,.35,1) infinite;
+  animation: loaderSpin 2.2s cubic-bezier(.65,0,.35,1) infinite;
 }
 /* giro rápido de dos vueltas seguidas y una pausa corta, en bucle */
 @keyframes loaderSpin {
@@ -5045,7 +5045,7 @@ body.fx-idle *, body.fx-idle *::before, body.fx-idle *::after {
   background: url('img/siteico.png') center / contain no-repeat;
   image-rendering: pixelated;
   pointer-events: none;
-  animation: loaderSpin 1.2s cubic-bezier(.65,0,.35,1) infinite;
+  animation: loaderSpin 2.2s cubic-bezier(.65,0,.35,1) infinite;
 }
 #loader::before { opacity: 0.35; animation-delay: 0.05s; }
 #loader::after  { opacity: 0.15; animation-delay: 0.1s; }
