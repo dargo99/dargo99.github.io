@@ -4368,3 +4368,41 @@ if (ES) {
     if (img.getAttribute('src') && img.complete && img.naturalWidth) mark(img);
   });
 })();
+
+/* MENÚ DEL TOPBAR (pantallas angostas, donde se desplaza en horizontal): se
+   recorre solo hasta dejar centrada la sección actual. Si el usuario lo
+   mueve, a los 5 s sin tocarlo vuelve a centrarla. */
+(function () {
+  const ul = document.querySelector('#topbar ul');
+  if (!ul) return;
+  const IDLE_MS = 5000;
+  let ownScrollUntil = 0, idleT = 0;
+  function center(smooth) {
+    if (ul.scrollWidth <= ul.clientWidth + 1) return;   // cabe entero: nada que hacer
+    const a = ul.querySelector('a.active');
+    if (!a) return;
+    const li = a.closest('li') || a;
+    const ur = ul.getBoundingClientRect(), r = li.getBoundingClientRect();
+    const left = ul.scrollLeft + (r.left - ur.left) - (ul.clientWidth - r.width) / 2;
+    ownScrollUntil = performance.now() + 700;
+    ul.scrollTo({ left: Math.max(0, left), behavior: smooth && !reducedMotionQuery.matches ? 'smooth' : 'auto' });
+  }
+  // la sección activa cambia → se centra (la clase .active la pone el deck)
+  let lastActive = ul.querySelector('a.active');
+  new MutationObserver(() => {
+    const now = ul.querySelector('a.active');
+    if (now === lastActive) return;
+    lastActive = now;
+    clearTimeout(idleT);
+    center(true);
+  }).observe(ul, { subtree: true, attributes: true, attributeFilter: ['class'] });
+  // desplazado a mano → vuelve a la sección actual tras 5 s quieto
+  ul.addEventListener('scroll', () => {
+    if (performance.now() < ownScrollUntil) return;
+    clearTimeout(idleT);
+    idleT = setTimeout(() => center(true), IDLE_MS);
+  }, { passive: true });
+  window.addEventListener('resize', () => center(false));
+  window.addEventListener('load', () => center(false));
+  center(false);
+})();
