@@ -5062,3 +5062,6 @@ body.fx-idle *, body.fx-idle *::before, body.fx-idle *::after {
   transition: max-height 0.45s ease, opacity 0.3s ease, margin 0.45s ease;
 }
 .exp-sites .exp-note[data-show-projs].is-collapsed { max-height: 0; opacity: 0; margin-top: 0; margin-bottom: 0; }
+
+/* "SEE CV.pdf": el texto ya va en mayúsculas; sin text-transform para que la extensión quede en minúscula */
+#topbar .btn-light .cv-text, .hero-ctas .btn-cv span { text-transform: none; }
