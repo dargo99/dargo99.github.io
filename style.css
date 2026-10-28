@@ -5065,3 +5065,7 @@ body.fx-idle *, body.fx-idle *::before, body.fx-idle *::after {
 
 /* "CV.pdf": el texto ya va en mayúsculas; sin text-transform para que la extensión quede en minúscula */
 #topbar .btn-light .cv-text, .hero-ctas .btn-cv span { text-transform: none; }
+
+/* Flecha del botón CV.pdf: SVG rojo a la derecha del texto */
+.cv-arrow { width: 13px; height: 13px; fill: var(--red); flex: none; }
+#topbar .btn-light .cv-arrow, .hero-ctas .btn-cv .cv-arrow { width: 13px; height: 13px; }
