@@ -2936,15 +2936,28 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
     playSound('whoosh', 0.14);
     let done, dur;
     const lite = isLite();
-    if (from.stage === to.stage) {
+    if (from.stage === to.stage && MOBILE_DECK.matches) {
+      // móvil: cambio de proyecto plano (sin 3D, desenfoque ni estela), un
+      // deslizamiento horizontal corto con fundido
+      dur = 380;
+      const out = [
+        { transform: 'translate3d(0,0,0)', opacity: 1 },
+        { transform: `translate3d(${-dir * 14}%,0,0)`, opacity: 0 },
+      ];
+      const inn = [
+        { transform: `translate3d(${dir * 14}%,0,0)`, opacity: 0 },
+        { transform: 'translate3d(0,0,0)', opacity: 1 },
+      ];
+      done = animateSwap(from.proj, to.proj, { out, inn }, dur, null, { noGhost: true, inDelay: 0 });
+    } else if (from.stage === to.stage) {
       dur = 520;
       const pf = projFrames(dir);
       // ligero: sin blur en el cambio de proyecto ni estela
       if (lite) [pf.out, pf.inn].forEach(fr => fr.forEach(k => delete k.filter));
       done = animateSwap(from.proj, to.proj, pf, dur, null, lite ? { noGhost: true } : null);
-    } else if (MOBILE_DECK.matches && (LIGHT.has(from.stage.id) || LIGHT.has(to.stage.id))) {
-      // móvil: el iris (máscara a pantalla completa + halos) da tirones en
-      // celulares. En su lugar la sección nueva entra deslizándose desde abajo
+    } else if (MOBILE_DECK.matches) {
+      // móvil (todas las secciones): el iris y el giro 3D se sentían forzados
+      // en celulares. En su lugar la sección nueva entra deslizándose desde abajo
       // (desde arriba al retroceder) con el telón de su color, y la anterior
       // se aleja un poco y se desvanece. Sólo transform + opacity.
       dur = 560;
