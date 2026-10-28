@@ -1630,7 +1630,10 @@ document.addEventListener('keydown', e => {
 (function () {
   const bb = document.getElementById('bottombar');
   if (!bb) return;
-  let manualOpen = true;      // arranca ABIERTA al cargar; luego clic/scroll/inactividad
+  // en móvil la barra abierta ocupa casi un cuarto de pantalla y tapa el hero:
+  // ahí arranca CERRADA y el hero no la abre (se abre con su botón)
+  const bbMobile = window.matchMedia('(max-width: 720px)');
+  let manualOpen = !bbMobile.matches; // escritorio: arranca ABIERTA al cargar
   let bottomTrigger = false;  // estamos al final de la página
   let bottomActive = false;   // ya disparamos el scroll automático al fondo
   let suppressBottom = false; // tras back-to-top: ignora el fondo hasta salir de él
@@ -1656,7 +1659,7 @@ document.addEventListener('keydown', e => {
   let heroDismissed = false;  // el usuario la cerró a mano estando en el hero
 
   function render() {
-    setOpen(manualOpen || bottomTrigger || (inHeroView && !heroDismissed));
+    setOpen(manualOpen || bottomTrigger || (inHeroView && !heroDismissed && !bbMobile.matches));
     bb.classList.toggle('at-bottom', bottomTrigger); // al final no se muestra el botón cerrar
   }
 
@@ -2363,6 +2366,7 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
   // transición al entrar/salir del hero y el about: 'iris' (círculo desde el
   // cursor) o 'wipe' (telón diagonal)
   const LIGHT_TRANSITION = 'iris';
+  const MOBILE_DECK = window.matchMedia('(max-width: 720px)');  // transición liviana en móvil
   const IRIS_MS = 900;   // duración de la apertura del iris (máscara + halo)
 
   const prevBtn  = document.getElementById('deck-prev');
@@ -2867,6 +2871,27 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
       // ligero: sin blur en el cambio de proyecto ni estela
       if (lite) [pf.out, pf.inn].forEach(fr => fr.forEach(k => delete k.filter));
       done = animateSwap(from.proj, to.proj, pf, dur, null, lite ? { noGhost: true } : null);
+    } else if (MOBILE_DECK.matches && (LIGHT.has(from.stage.id) || LIGHT.has(to.stage.id))) {
+      // móvil: el iris (máscara a pantalla completa + halos) da tirones en
+      // celulares. En su lugar la sección nueva entra deslizándose desde abajo
+      // (desde arriba al retroceder) con el telón de su color, y la anterior
+      // se aleja un poco y se desvanece. Sólo transform + opacity.
+      dur = 560;
+      const curtain = LIGHT.has(to.stage.id) ? null : (TINT[to.stage.id] || '#000');
+      const inn = [
+        { transform: `translate3d(0, ${dir * 100}%, 0)`, offset: 0 },
+        { transform: 'translate3d(0, 0, 0)', offset: 1 },
+      ];
+      if (curtain) {
+        inn[0].backgroundColor = curtain;
+        inn.splice(1, 0, { backgroundColor: curtain, offset: 0.8 });
+        inn[2].backgroundColor = 'rgba(0,0,0,0)';
+      }
+      const out = [
+        { transform: 'translate3d(0, 0, 0)', opacity: 1, offset: 0 },
+        { transform: `translate3d(0, ${-dir * 18}%, 0)`, opacity: 0, offset: 1 },
+      ];
+      done = animateSwap(from.stage, to.stage, { out, inn }, dur, null, { noGhost: true, inDelay: 0 });
     } else if (lite && (LIGHT.has(from.stage.id) || LIGHT.has(to.stage.id))) {
       // ligero: en vez del iris (máscara a pantalla completa + halos + onda)
       // un fundido con leve zoom; la que entra lleva el telón de su color
