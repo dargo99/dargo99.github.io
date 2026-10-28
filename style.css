@@ -4999,3 +4999,8 @@ body.fx-idle *, body.fx-idle *::before, body.fx-idle *::after {
   -webkit-tap-highlight-color: transparent;
 }
 .deck-arrow:active:not(:disabled) { scale: 0.9; }   /* "scale" no pisa el transform de posición */
+
+/* flechas de los visores (zoom y diseños): SVG en lugar de los caracteres
+   ← →, que cada fuente dibuja a distinta altura y quedaban desalineados */
+.vw-arrow { width: 22px; height: 22px; display: block; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: square; }
+#zoom-prev .vw-arrow, #lb-prev .vw-arrow { transform: rotate(180deg); }

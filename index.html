@@ -7,7 +7,7 @@
   <link rel="icon" href="img/siteico.png" type="image/png" />
   <link rel="alternate" hreflang="en" href="https://dargo99.github.io/" />
   <link rel="alternate" hreflang="es" href="https://dargo99.github.io/es/" />
-  <link rel="stylesheet" href="style.css?v=20261031s" />
+  <link rel="stylesheet" href="style.css?v=20261031t" />
 </head>
 <body>
   <!-- Activa el modo deck ANTES del primer pintado: si se esperaba a script.js
@@ -47,8 +47,8 @@
   <!-- Zoom modal (slider images / videos) -->
   <div id="zoom" role="dialog" aria-modal="true" aria-label="Media viewer" aria-hidden="true">
     <button type="button" id="zoom-close" data-sound="clic">✕</button>
-    <button type="button" id="zoom-prev" data-sound="clic">←</button>
-    <button type="button" id="zoom-next" data-sound="clic">→</button>
+    <button type="button" id="zoom-prev" data-sound="clic" aria-label="Previous image"><svg class="vw-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>
+    <button type="button" id="zoom-next" data-sound="clic" aria-label="Next image"><svg class="vw-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>
     <span id="zoom-tag"></span>
     <span id="zoom-ba" class="ba-cover" aria-hidden="true"></span>
     <div class="zoom-view">
@@ -61,8 +61,8 @@
        cubra toda la página (si va anidado en una sección queda atrapado). -->
   <div id="lightbox" role="dialog" aria-modal="true" aria-label="Graphic design viewer" aria-hidden="true">
     <button type="button" id="lb-close" data-sound="clic">✕</button>
-    <button type="button" id="lb-prev"  data-sound="clic">←</button>
-    <button type="button" id="lb-next"  data-sound="clic">→</button>
+    <button type="button" id="lb-prev"  data-sound="clic" aria-label="Previous image"><svg class="vw-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>
+    <button type="button" id="lb-next"  data-sound="clic" aria-label="Next image"><svg class="vw-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>
     <img id="lb-img" src="" alt="Enlarged view" />
   </div>
 
@@ -709,6 +709,6 @@
 
   </div><!-- /#page -->
 
-  <script src="script.js?v=20261031s"></script>
+  <script src="script.js?v=20261031t"></script>
 </body>
 </html>
