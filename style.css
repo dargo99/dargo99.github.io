@@ -5069,5 +5069,5 @@ body.fx-idle *, body.fx-idle *::before, body.fx-idle *::after {
 /* Flecha del botón CV.pdf: SVG rojo a la derecha del texto */
 .cv-arrow { width: 13px; height: 13px; fill: var(--red); flex: none; }
 #topbar .btn-light .cv-arrow, .hero-ctas .btn-cv .cv-arrow { width: 13px; height: 13px; }
-.cv-arrow { transition: transform 0.2s ease, fill 0.2s ease; }
+.cv-arrow, #topbar .btn-light .cv-arrow { transition: transform 0.2s ease, fill 0.2s ease; }
 #topbar .btn-light:hover .cv-arrow, .hero-ctas .btn-cv:hover .cv-arrow { transform: translate(3px, -3px); fill: #fff; }
