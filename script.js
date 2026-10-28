@@ -916,6 +916,28 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+/* ===== SWIPE TÁCTIL =====
+   Deslizar el dedo en horizontal sobre un slider, el zoom o el visor de
+   diseños pasa de imagen (a la izquierda = siguiente). Sólo cuenta un gesto
+   claramente horizontal y rápido; el vertical se deja para el scroll. */
+function onSwipe(el, cb) {
+  if (!el) return;
+  let t0 = null;
+  el.addEventListener('touchstart', e => {
+    if (e.touches.length !== 1) { t0 = null; return; }
+    const t = e.touches[0];
+    t0 = { x: t.clientX, y: t.clientY, at: performance.now() };
+  }, { passive: true });
+  el.addEventListener('touchend', e => {
+    if (!t0) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - t0.x, dy = t.clientY - t0.y, dt = performance.now() - t0.at;
+    t0 = null;
+    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.3 || dt > 900) return;
+    cb(dx < 0 ? 1 : -1);
+  }, { passive: true });
+}
+
 /* ===== SLIDERS ===== */
 const sliderVideoControllers = [];
 
@@ -1176,6 +1198,11 @@ document.querySelectorAll('[data-slider]').forEach(slider => {
     playSound('clic', SLIDE_VOL);
   });
 
+  onSwipe(slider.querySelector('.slider-main'), dir => {
+    show(current + dir);
+    playSound('clic', SLIDE_VOL);
+  });
+
   thumbs.forEach((thumb, i) => {
     const media = slides[i] && slides[i].querySelector('img, video');
     const description = media?.getAttribute('alt') || tr(`slide ${i + 1}`, `imagen ${i + 1}`);
@@ -1356,6 +1383,7 @@ function closeZoom() {
 }
 if (zoomModal) {
   document.getElementById('zoom-close').addEventListener('click', e => { e.stopPropagation(); closeZoom(); });
+  onSwipe(zoomModal, dir => { if (document.body.classList.contains('zoom-open')) zoomStep(dir); });
   document.getElementById('zoom-prev').addEventListener('click', e => { e.stopPropagation(); zoomStep(-1); });
   document.getElementById('zoom-next').addEventListener('click', e => { e.stopPropagation(); zoomStep(1); });
   zoomModal.addEventListener('click', e => {
@@ -1624,6 +1652,7 @@ designImgs.forEach((img, i) => {
   button.addEventListener('click', () => openLightbox(i));
 });
 document.getElementById('lb-close').addEventListener('click', closeLightbox);
+onSwipe(lightbox, dir => { if (lightbox.classList.contains('active')) lbStep(dir); });
 document.getElementById('lb-prev').addEventListener('click', () => lbStep(-1));
 document.getElementById('lb-next').addEventListener('click', () => lbStep(1));
 lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
