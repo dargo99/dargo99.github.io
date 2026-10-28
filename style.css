@@ -770,7 +770,7 @@ body.scrolling .cursor-ghost { mix-blend-mode: normal; }
 /* Download CV: icono + texto en desktop, solo icono en móvil */
 .btn-light { display: flex; align-items: center; gap: 8px; }
 .btn-light .cv-icon { display: inline-block; width: 18px; height: 18px; object-fit: contain; transition: filter var(--transition); }
-.btn-light:hover .cv-icon { filter: invert(1); } /* negativo al hover del padre */
+.btn-light:hover .cv-icon { filter: none; } /* la flecha roja se mantiene al hover */
 .nav-logo { display: flex; align-items: center; gap: 0.8rem; }
 .nav-logo img {
   width: 44px; height: 44px; object-fit: contain;
@@ -4041,7 +4041,7 @@ body.lite .px-ufo svg { animation: none; }
   image-rendering: pixelated;
 }
 /* al hover el fondo se vuelve oscuro: icono en negativo */
-.hero-ctas .btn-cv:hover .cv-icon { filter: invert(1); }
+.hero-ctas .btn-cv:hover .cv-icon { filter: none; }
 
 /* ===== CURSOR EN PIXEL ART =====
    Sprites SVG nítidos (img/px): flecha por defecto, MANITO en enlaces y
