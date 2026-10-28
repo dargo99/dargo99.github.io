@@ -2957,8 +2957,22 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
   };
 
   // si la flecha pasó de imagen, la galería ya hizo su sonido (más bajo)
-  if (prevBtn) prevBtn.addEventListener('click', () => { if (!galOrStep(-1)) playSound('clic'); });
-  if (nextBtn) nextBtn.addEventListener('click', () => { if (!galOrStep(1)) playSound('clic'); });
+  // móvil (flechas abajo en las esquinas): las flechas avanzan como las
+  // teclas ↓ ↑: primero recorren el contenido de la diapositiva si desborda,
+  // luego las imágenes del slider del proyecto y, al final, el proyecto
+  const ARROWS_BOTTOM = window.matchMedia('(max-width: 900px)');
+  function arrowStep(dir) {
+    if (!ARROWS_BOTTOM.matches) return galOrStep(dir);
+    const sc = steps[cur] && steps[cur].stage.querySelector(':scope > .container');
+    if (sc && scrollerFor(sc, false, dir)) {
+      sc.scrollBy({ top: dir * sc.clientHeight * 0.8, behavior: reduced() ? 'auto' : 'smooth' });
+      return false;
+    }
+    slideOrStep(dir);
+    return false;
+  }
+  if (prevBtn) prevBtn.addEventListener('click', () => { if (!arrowStep(-1)) playSound('clic'); });
+  if (nextBtn) nextBtn.addEventListener('click', () => { if (!arrowStep(1)) playSound('clic'); });
 
   // enlaces internos (#fama, #hero, back to top, "See my work"…) → navegan el deck
   document.addEventListener('click', e => {
