@@ -2963,7 +2963,11 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
   function arrowStep(dir) {
     const sc = steps[cur] && steps[cur].stage.querySelector(':scope > .container');
     if (sc && scrollerFor(sc, false, dir)) {
-      sc.scrollBy({ top: dir * sc.clientHeight * 0.8, behavior: reduced() ? 'auto' : 'smooth' });
+      // si lo que falta cabe en una pantalla, va hasta el final de una vez
+      // (antes avanzaba el 80% y en móvil había que tocar dos veces)
+      const left = dir > 0 ? sc.scrollHeight - sc.clientHeight - sc.scrollTop : sc.scrollTop;
+      const by = left <= sc.clientHeight ? left : sc.clientHeight * 0.8;
+      sc.scrollBy({ top: dir * by, behavior: reduced() ? 'auto' : 'smooth' });
       return false;
     }
     slideOrStep(dir);
