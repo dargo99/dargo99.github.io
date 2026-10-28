@@ -2399,6 +2399,28 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
   let pending = null;
   let probedMoves = 0, slowMoves = 0;   // medición de las primeras transiciones
 
+  // en la primera / última diapositiva la flecha sólo se desactiva si ya no
+  // queda contenido por recorrer (en móvil el About desborda: → y ← lo
+  // desplazan hacia abajo / arriba)
+  function syncArrows() {
+    const st = steps[cur];
+    const sc = st && st.stage.querySelector(':scope > .container');
+    const canUp = !!sc && sc.scrollTop > 1;
+    const canDown = !!sc && sc.scrollTop + sc.clientHeight < sc.scrollHeight - 1;
+    if (prevBtn) prevBtn.disabled = cur === 0 && !canUp;
+    if (nextBtn) nextBtn.disabled = cur === steps.length - 1 && !canDown;
+  }
+  document.addEventListener('scroll', e => {
+    if (e.target && e.target.matches && e.target.matches('#page > .stage > .container')) syncArrows();
+  }, { capture: true, passive: true });
+  window.addEventListener('resize', () => syncArrows());
+  window.addEventListener('load', () => syncArrows());
+  // el contenido crece al cargar imágenes / video / fuentes: se recalcula
+  if ('ResizeObserver' in window) {
+    const ro = new ResizeObserver(() => syncArrows());
+    document.querySelectorAll('#page > .stage > .container, #page > .stage > .container > *').forEach(el => ro.observe(el));
+  }
+
   function setTopVar() {
     if (topbar) document.documentElement.style.setProperty('--deck-top', topbar.offsetHeight + 'px');
   }
@@ -2498,8 +2520,7 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
     setActiveNav(id);
     if (countEl) countEl.textContent = pad(cur + 1) + ' / ' + pad(steps.length);
     if (progress) progress.style.width = ((cur + 1) / steps.length * 100) + '%';
-    if (prevBtn) prevBtn.disabled = cur === 0;
-    if (nextBtn) nextBtn.disabled = cur === steps.length - 1;
+    syncArrows();
     try { history.replaceState(null, '', '#' + id); } catch (_) {}
 
     document.dispatchEvent(new CustomEvent('deck:change', { detail: { index: cur, step: to } }));
@@ -2970,6 +2991,7 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
     next, prev, goTo, goToStage,
     stageIndex: () => (steps[cur] ? steps[cur].si : 0),
     stageCount: () => stages.length,
+    index: () => cur,
   };
 
   // si la flecha pasó de imagen, la galería ya hizo su sonido (más bajo)
@@ -4314,10 +4336,30 @@ document.querySelectorAll('.site-more').forEach(btn => {
 // TABLET / MÓVIL: el contenido de cada diapositiva puede tener scroll propio
 // (.container). Al llegar a una diapositiva nueva —sección o proyecto interno—
 // se vuelve arriba para empezar a leerla desde el principio
+// al avanzar, la diapositiva nueva arranca ARRIBA; al retroceder arranca
+// ABAJO (se viene "desde abajo", y ← sigue subiendo por su contenido)
+let lastDeckIndex = window.deck && window.deck.index ? window.deck.index() : null;
 document.addEventListener('deck:change', e => {
-  const st = e.detail && e.detail.step && e.detail.step.stage;
+  const d = e.detail || {};
+  const back = lastDeckIndex !== null && d.index < lastDeckIndex;
+  lastDeckIndex = d.index;
+  const st = d.step && d.step.stage;
   const box = st && st.querySelector(':scope > .container');
-  if (box && box.scrollTop > 0) box.scrollTo({ top: 0, behavior: reducedMotionQuery.matches ? 'auto' : 'smooth' });
+  if (!box) return;
+  const idx = d.index;
+  // al cambiar de SECCIÓN el contenedor aún no se ve (scrollHeight 0): se
+  // reintenta en los siguientes cuadros hasta que tenga alto
+  let tries = 0;
+  const apply = () => {
+    if (lastDeckIndex !== idx) return;              // ya se navegó a otra
+    if (!box.clientHeight && tries++ < 30) { requestAnimationFrame(apply); return; }
+    const top = back ? box.scrollHeight - box.clientHeight : 0;
+    if (Math.abs(box.scrollTop - top) > 1) box.scrollTo({ top, behavior: reducedMotionQuery.matches ? 'auto' : 'smooth' });
+  };
+  apply();
+  // entre secciones el layout termina de armarse con la transición: al
+  // quedar quieta se vuelve a aplicar (si ya está en su sitio no hace nada)
+  document.addEventListener('deck:settled', apply, { once: true });
 });
 
 /* cambio de idioma: conserva la sección actual (#fama, #about…) al pasar de

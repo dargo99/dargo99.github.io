@@ -4959,3 +4959,31 @@ body.fx-idle *, body.fx-idle *::before, body.fx-idle *::after {
 }
 .thumb::before { width: 22px; height: 22px; }
 .slide.is-loaded::before, .thumb.is-loaded::before, .design-item.is-loaded::before { opacity: 0; }
+
+/* ===== TOPBAR EN MÓVIL: el menú en su propia fila =====
+   Junto al nombre y al botón de descarga sólo le quedaban ~65px (se veía
+   media palabra). Debajo ocupa todo el ancho y lleva los números. El alto
+   real del topbar lo mide el JS (--deck-top), así el contenido baja solo. */
+@media (max-width: 720px) {
+  #topbar { flex-wrap: wrap; row-gap: 0.3rem; padding-bottom: 0.45rem; }
+  #topbar .nav-logo { margin-right: auto; }
+  #topbar ul {
+    order: 3; flex: 1 1 100%; min-width: 0;
+    margin: 0; gap: 1.4rem; padding: 0.1rem 0.1rem 0;
+  }
+  #topbar ul a .micro { display: inline; }
+}
+
+/* ===== BARRA DE CONTACTO ABIERTA EN MÓVIL: compacta =====
+   Antes medía ~175px (12vh + relleno grande). Ahora sólo lo justo: el
+   título "CONTACT" arriba y la fila de iconos debajo, con algo de aire. */
+@media (max-width: 720px) {
+  #bottombar.open {
+    height: 104px;
+    padding: 0 1rem 0.9rem;
+    align-items: flex-end;
+  }
+  #bottombar .bb-title { top: 8px; font-size: 1.9rem; }
+  #bottombar .bb-toggle { top: 10px; }
+  body.deck.bb-open { --deck-bottom: 104px; }
+}
