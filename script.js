@@ -4494,3 +4494,25 @@ if (ES) {
   window.addEventListener('load', () => center(false));
   center(false);
 })();
+
+/* pantalla de carga (ver #loader): se quita cuando la página cargó (load) y
+   las fuentes están listas, dos cuadros después para que el deck ya esté
+   pintado en su sitio. Tope de 8 s por si algún recurso se cuelga. */
+(function () {
+  const loader = document.getElementById('loader');
+  if (!loader) return;
+  let done = false;
+  const finish = () => {
+    if (done) return; done = true;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      loader.classList.add('is-done');
+      setTimeout(() => loader.remove(), 600);
+    }));
+  };
+  const loaded = document.readyState === 'complete'
+    ? Promise.resolve()
+    : new Promise(r => window.addEventListener('load', r, { once: true }));
+  const fonts = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+  Promise.all([loaded, fonts]).then(finish);
+  setTimeout(finish, 8000);
+})();

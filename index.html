@@ -7,13 +7,16 @@
   <link rel="icon" href="img/siteico.png" type="image/png" />
   <link rel="alternate" hreflang="en" href="https://dargo99.github.io/" />
   <link rel="alternate" hreflang="es" href="https://dargo99.github.io/es/" />
-  <link rel="stylesheet" href="style.css?v=20261031v" />
+  <link rel="stylesheet" href="style.css?v=20261101a" />
 </head>
 <body>
   <!-- Activa el modo deck ANTES del primer pintado: si se esperaba a script.js
        (al final del body) el hero se pintaba primero con el layout normal y la
        descripción/botones visibles, y luego se ocultaban con un fundido. -->
   <script>document.body.classList.add('deck', 'deck-boot');</script>
+  <!-- Pantalla de carga: desenfoque sobre el sitio + logo al centro mientras
+       termina de cargar y acomodarse; script.js la desvanece -->
+  <div id="loader" aria-hidden="true"><img src="img/siteico.png" alt="" /></div>
 
   <!-- Filtros SVG: aberración cromática (lupa) + deformación del agua (aurora) -->
   <svg id="fx-defs" aria-hidden="true" focusable="false" width="0" height="0">
@@ -709,6 +712,6 @@
 
   </div><!-- /#page -->
 
-  <script src="script.js?v=20261031v"></script>
+  <script src="script.js?v=20261101a"></script>
 </body>
 </html>
