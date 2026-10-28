@@ -2957,12 +2957,10 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
   };
 
   // si la flecha pasó de imagen, la galería ya hizo su sonido (más bajo)
-  // móvil (flechas abajo en las esquinas): las flechas avanzan como las
-  // teclas ↓ ↑: primero recorren el contenido de la diapositiva si desborda,
-  // luego las imágenes del slider del proyecto y, al final, el proyecto
-  const ARROWS_BOTTOM = window.matchMedia('(max-width: 900px)');
+  // las flechas del deck avanzan como las teclas ↓ ↑: primero recorren el
+  // contenido de la diapositiva si desborda, luego las imágenes del slider
+  // del proyecto y, al final, el proyecto
   function arrowStep(dir) {
-    if (!ARROWS_BOTTOM.matches) return galOrStep(dir);
     const sc = steps[cur] && steps[cur].stage.querySelector(':scope > .container');
     if (sc && scrollerFor(sc, false, dir)) {
       sc.scrollBy({ top: dir * sc.clientHeight * 0.8, behavior: reduced() ? 'auto' : 'smooth' });
