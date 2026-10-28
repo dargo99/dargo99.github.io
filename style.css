@@ -4987,3 +4987,15 @@ body.fx-idle *, body.fx-idle *::before, body.fx-idle *::after {
   #bottombar .bb-toggle { top: 10px; }
   body.deck.bb-open { --deck-bottom: 104px; }
 }
+
+/* ===== TOQUES EN MÓVIL =====
+   Dos toques seguidos en una flecha se interpretaban como "doble toque para
+   zoom" (sobre todo en iPhone) y el segundo no llegaba al botón. Con
+   touch-action: manipulation el navegador no espera ni hace zoom en estos
+   controles. Al presionar, el botón se hunde un poco para confirmar el toque. */
+.deck-arrow, .nav-btn, .thumb, .design-item, .site-pill, .lang-switch,
+#topbar a, #bottombar a, #bottombar button, .hero-ctas a, .proj-pager button {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.deck-arrow:active:not(:disabled) { scale: 0.9; }   /* "scale" no pisa el transform de posición */
