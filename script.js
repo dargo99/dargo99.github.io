@@ -4339,3 +4339,16 @@ if (ES) {
   window.addEventListener('resize', () => { clearTimeout(fitUnitT); fitUnitT = setTimeout(fitUnit, 120); });
   document.addEventListener('deck:change', () => setTimeout(fitUnit, 50));
 }
+
+/* placeholder de carga (ver CSS): al cargar la imagen o el video de un slide,
+   miniatura o pieza de diseño, su contenedor recibe .is-loaded y el logo gris
+   se desvanece. load/loadeddata no burbujean: se escuchan en captura. */
+(function () {
+  const HOLDERS = '.slide, .thumb, .design-item';
+  const mark = el => { const h = el.closest && el.closest(HOLDERS); if (h) h.classList.add('is-loaded'); };
+  document.addEventListener('load', e => { if (e.target.tagName === 'IMG') mark(e.target); }, true);
+  document.addEventListener('loadeddata', e => mark(e.target), true);
+  document.querySelectorAll('.slide img, .thumb img, .design-item img').forEach(img => {
+    if (img.getAttribute('src') && img.complete && img.naturalWidth) mark(img);
+  });
+})();

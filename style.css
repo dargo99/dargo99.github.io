@@ -4939,3 +4939,23 @@ body.fx-idle *, body.fx-idle *::before, body.fx-idle *::after {
   .deck #hero .hd-text { font-size: 1.02rem; line-height: 1.38; }
   .deck #hero .hero-ctas { gap: 0.6rem; }
 }
+
+/* ===== PLACEHOLDER DE CARGA =====
+   Mientras una imagen o video de los sliders, miniaturas o diseños no ha
+   cargado, se ve el logo en gris en el centro (máscara con el PNG del logo:
+   así toma el color que se quiera). Al cargar, el JS pone .is-loaded y el
+   logo se desvanece; queda detrás de la imagen (isolation + z-index -1). */
+.slide, .thumb, .design-item { isolation: isolate; }
+.thumb { position: relative; }
+.slide::before, .thumb::before, .design-item::before {
+  content: '';
+  position: absolute; inset: 0; margin: auto; z-index: -1;
+  width: 46px; height: 46px;
+  background: #9b9b9b;
+  -webkit-mask: url('img/siteico.png') center / contain no-repeat;
+          mask: url('img/siteico.png') center / contain no-repeat;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.thumb::before { width: 22px; height: 22px; }
+.slide.is-loaded::before, .thumb.is-loaded::before, .design-item.is-loaded::before { opacity: 0; }
