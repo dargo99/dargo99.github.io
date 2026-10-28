@@ -5034,3 +5034,20 @@ body.fx-idle *, body.fx-idle *::before, body.fx-idle *::after {
 }
 #loader.is-done { opacity: 0; visibility: hidden; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { #loader img { animation: none; } }
+
+/* estela (ghosting) del logo de carga: dos copias detrás que repiten el giro
+   con un pequeño retraso y menos opacidad */
+#loader::before,
+#loader::after {
+  content: '';
+  position: absolute; left: 50%; top: 50%;
+  width: 64px; height: 64px; margin: -32px 0 0 -32px;
+  background: url('img/siteico.png') center / contain no-repeat;
+  image-rendering: pixelated;
+  pointer-events: none;
+  animation: loaderSpin 0.9s cubic-bezier(.65,0,.35,1) infinite;
+}
+#loader::before { opacity: 0.35; animation-delay: 0.05s; }
+#loader::after  { opacity: 0.15; animation-delay: 0.1s; }
+#loader img { position: relative; z-index: 1; }
+@media (prefers-reduced-motion: reduce) { #loader::before, #loader::after { display: none; } }
