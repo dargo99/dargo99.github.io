@@ -5024,11 +5024,13 @@ body.fx-idle *, body.fx-idle *::before, body.fx-idle *::after {
 #loader img {
   width: 64px; height: 64px;
   image-rendering: pixelated;
-  animation: loaderPulse 1.1s ease-in-out infinite;
+  animation: loaderSpin 0.9s cubic-bezier(.65,0,.35,1) infinite;
 }
-@keyframes loaderPulse {
-  0%, 100% { opacity: 0.45; transform: scale(0.94); }
-  50%      { opacity: 1;    transform: scale(1); }
+/* giro rápido de una vuelta y una pausa corta, en bucle */
+@keyframes loaderSpin {
+  0%   { transform: rotate(0deg); }
+  65%  { transform: rotate(360deg); }
+  100% { transform: rotate(360deg); }
 }
 #loader.is-done { opacity: 0; visibility: hidden; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { #loader img { animation: none; } }
