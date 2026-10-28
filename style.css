@@ -544,7 +544,8 @@ body.lb-open.zoom-ctrl #cursor {
 }
 /* cursor invertido cuando detecta un fondo oscuro bajo el puntero */
 #cursor.on-dark {
-  filter: invert(1) drop-shadow(0 2px 5px rgba(255,255,255,0.3));
+  /* glow blanco suave alrededor del puntero sobre fondos oscuros */
+  filter: invert(1) drop-shadow(0 0 3px rgba(255,255,255,0.75)) drop-shadow(0 0 9px rgba(255,255,255,0.35));
 }
 /* durante el scroll desactivamos el mix-blend del cursor/estelas: un elemento con
    mix-blend desactiva el scroll por GPU del contenedor de abajo (slider lento).
