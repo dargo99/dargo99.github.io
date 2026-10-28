@@ -5053,3 +5053,11 @@ body.fx-idle *, body.fx-idle *::before, body.fx-idle *::after {
 #loader::after  { opacity: 0.15; animation-delay: 0.1s; }
 #loader img { position: relative; z-index: 1; }
 @media (prefers-reduced-motion: reduce) { #loader::before, #loader::after { display: none; } }
+
+/* nota de la experiencia que sólo acompaña a ciertos proyectos (FAMA:
+   hosting/DNS/Cloudflare sólo en el proyecto 1): al pasar a otro se colapsa */
+.exp-sites .exp-note[data-show-projs] {
+  max-height: 14em; overflow: hidden;
+  transition: max-height 0.45s ease, opacity 0.3s ease, margin 0.45s ease;
+}
+.exp-sites .exp-note[data-show-projs].is-collapsed { max-height: 0; opacity: 0; margin-top: 0; margin-bottom: 0; }

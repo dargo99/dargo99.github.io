@@ -2506,6 +2506,11 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
       to.stage.querySelectorAll('.site-pill[data-show-projs]').forEach(pl => {
         pl.hidden = !pl.dataset.showProjs.split(',').includes(String(to.pi));
       });
+      // notas de la experiencia que sólo van con ciertos proyectos: se
+      // colapsan con transición (ver .exp-note[data-show-projs] en el CSS)
+      to.stage.querySelectorAll('.exp-note[data-show-projs]').forEach(n => {
+        n.classList.toggle('is-collapsed', !n.dataset.showProjs.split(',').includes(String(to.pi)));
+      });
       // en el checkout el enlace de famaedu.com apunta a /apply/ (y su texto
       // dice famaedu.com/apply)
       to.stage.querySelectorAll('.site-pill[data-alt-proj]').forEach(pl => {
