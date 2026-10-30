@@ -2432,6 +2432,7 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
       projs.forEach(proj => {
         const scr = first.cloneNode(false);
         scr.removeAttribute('id');
+        scr.classList.add('reel-proj');
         const cols = document.createElement('div');
         cols.className = 'stage-cols';
         const col = document.createElement('div');
@@ -2439,13 +2440,25 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
         const list = document.createElement('div');
         list.className = 'col-projects';
         list.appendChild(proj);
-        if (head) col.appendChild(head.cloneNode(true));
+        if (head) {
+          const ph = head.cloneNode(true);
+          ph.classList.add('reel-head-ph');
+          ph.setAttribute('aria-hidden', 'true');
+          ph.setAttribute('inert', '');
+          col.appendChild(ph);
+        }
         col.appendChild(list);
         cols.appendChild(col);
         scr.appendChild(cols);
         prev.after(scr);
         prev = scr;
       });
+      // encabezado "Project 0X / 0N" FIJO: no se mueve al cambiar de proyecto,
+      // sólo cambian el número y las barras; los proyectos pasan por debajo
+      if (head) {
+        head.classList.add('reel-head');
+        stage.appendChild(head);
+      }
       right.remove();
     });
   }
@@ -2556,6 +2569,10 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
       s.classList.toggle('anim-off', !on && !(from && s === from.stage));
     });
     // reels: sólo se ve la pantalla actual (y la que sale, mientras se mueve)
+    if (REELS) {
+      const rh = to.stage.querySelector(':scope > .reel-head');
+      if (rh) rh.classList.toggle('is-on', !!to.proj);
+    }
     if (REELS) to.stage.querySelectorAll(':scope > .container').forEach(c => {
       const on = c === to.box;
       c.classList.toggle('reel-on', on);
@@ -2607,7 +2624,7 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
         } else pl.innerHTML = pl.__baseHTML;
       });
       fitDescStack(to.stage.querySelector('.exp-projdesc-stack'));
-      const pager = to.box.querySelector('.proj-pager');
+      const pager = (REELS && to.stage.querySelector(':scope > .reel-head') || to.box).querySelector('.proj-pager');
       if (pager) {
         pager.querySelectorAll('button').forEach((b, i) => b.setAttribute('aria-current', String(i === to.pi)));
         const lbl = pager.querySelector('.proj-pager-count');
@@ -3169,9 +3186,27 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
       sm.style.aspectRatio = 'auto';
       sm.style.height = h + 'px';
     };
-    document.addEventListener('deck:change', () => requestAnimationFrame(fitReel));
-    window.addEventListener('resize', fitReel);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitReel);
+    // el encabezado fijo se alinea con el hueco de la pantalla actual (la
+    // banda va desde el topbar hasta su borde inferior y tapa lo que pasa debajo)
+    const placeHead = () => {
+      const s = steps[cur];
+      const rh = s && s.stage.querySelector(':scope > .reel-head');
+      const ph = rh && s.box.querySelector('.reel-head-ph');
+      if (!ph) return;
+      const sr = s.stage.getBoundingClientRect();
+      const br = s.box.getBoundingClientRect();   // incluye el transform de la animación
+      const pr = ph.getBoundingClientRect();
+      const top = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--deck-top')) || 0;
+      rh.style.top = top + 'px';
+      rh.style.paddingTop = Math.max(0, pr.top - br.top - top) + 'px';
+      rh.style.paddingLeft = (pr.left - sr.left) + 'px';
+      rh.style.paddingRight = (sr.right - pr.right) + 'px';
+      rh.style.height = (pr.bottom - br.top - top) + 'px';
+    };
+    const refit = () => { fitReel(); placeHead(); };
+    document.addEventListener('deck:change', () => requestAnimationFrame(refit));
+    window.addEventListener('resize', refit);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(refit);
   }
 
   window.deck = {

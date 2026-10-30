@@ -5104,3 +5104,22 @@ body.ufo-dragging #deck-progress span { transition: none; }
 @media (max-width: 900px) {
   .about-grid { row-gap: 1.6rem; }
 }
+
+/* reels: encabezado "Project 0X / 0N" fijo de la sección. Una banda del color
+   de la sección desde el topbar hasta el encabezado: los proyectos pasan por
+   debajo al cambiar. En la tarjeta de la experiencia no se muestra. Cada
+   pantalla de proyecto guarda un hueco invisible del mismo alto */
+.deck-reels .reel-head {
+  position: absolute; left: 0; right: 0; z-index: 5;
+  box-sizing: border-box;
+  margin: 0;
+  align-items: flex-end;
+  background: linear-gradient(to bottom, var(--deck-bg) 82%, transparent);
+  opacity: 0; visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+}
+.deck-reels .reel-head.is-on { opacity: 1; visibility: inherit; transition: opacity 0.3s ease; }
+.deck-reels .reel-head-ph { visibility: hidden; }
+/* pantallas de proyecto alineadas arriba (no centradas): el hueco del
+   encabezado queda siempre a la misma altura y el encabezado no salta */
+.deck-reels #page > .stage > .container.reel-proj > :first-child { margin-top: 0.6rem; }
