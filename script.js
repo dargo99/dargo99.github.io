@@ -3013,11 +3013,15 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
         { transform: `translate3d(0,${dir * 100}%,0)` },
         { transform: 'translate3d(0,0,0)' },
       ];
-      done = animateSwap(snap, box, { out, inn }, dur, null, { noGhost: true, inDelay: 0 }).then(() => {
+      const unsnap = () => {
         snap.remove();
         box.getAnimations().forEach(a => a.cancel());
         box.style.zIndex = '';
-      });
+      };
+      done = animateSwap(snap, box, { out, inn }, dur, null, { noGhost: true, inDelay: 0 }).then(unsnap);
+      // respaldo: si la pestaña deja de pintar a mitad de camino (app en
+      // segundo plano), la copia no se queda encima del contenido
+      setTimeout(() => { if (snap.isConnected) unsnap(); }, dur + 900);
     } else if (from.stage === to.stage && MOBILE_DECK.matches) {
       // móvil: cambio de proyecto plano (sin 3D, desenfoque ni estela), un
       // deslizamiento horizontal corto con fundido
