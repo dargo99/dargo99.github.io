@@ -5120,7 +5120,7 @@ body.ufo-dragging #deck-progress span { transition: none; }
    encabezado queda siempre a la misma altura y el encabezado no salta */
 .deck-reels #page > .stage > .container.reel-proj > :first-child { margin-top: 0.6rem; }
 
-/* táctil: el cursor se desvanece 3 s después del último toque */
+/* táctil: el cursor se desvanece 2 s después del último toque */
 #cursor { transition: transform 0.1s ease, opacity 0.4s ease; }
 body.cursor-gone #cursor { opacity: 0; }
 

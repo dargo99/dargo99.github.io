@@ -328,7 +328,7 @@ document.addEventListener('visibilitychange', () => {
   document.body.classList.toggle('tab-hidden', document.hidden);
 });
 
-// táctil: el cursor aparece donde se toca y se desvanece 3 s después del
+// táctil: el cursor aparece donde se toca y se desvanece 2 s después del
 // último toque (con mouse se queda siempre visible)
 (function () {
   if (!cursor) return;
@@ -339,7 +339,7 @@ document.addEventListener('visibilitychange', () => {
   const hideLater = e => {
     if (e.pointerType !== 'touch') return;
     clearTimeout(t);
-    t = setTimeout(() => document.body.classList.add('cursor-gone'), 3000);
+    t = setTimeout(() => document.body.classList.add('cursor-gone'), 2000);
   };
   window.addEventListener('pointerup', hideLater, { passive: true });
   window.addEventListener('pointercancel', hideLater, { passive: true });
