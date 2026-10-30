@@ -5071,3 +5071,23 @@ body.fx-idle *, body.fx-idle *::before, body.fx-idle *::after {
 #topbar .btn-light .cv-arrow, .hero-ctas .btn-cv .cv-arrow { width: 13px; height: 13px; }
 .cv-arrow, #topbar .btn-light .cv-arrow { transition: transform 0.2s ease, fill 0.2s ease; }
 #topbar .btn-light:hover .cv-arrow, .hero-ctas .btn-cv:hover .cv-arrow { transform: translate(3px, -3px); fill: #fff; }
+
+/* ===== MÓVIL "REELS" (body.deck-reels, lo pone el JS en ≤720px) =====
+   Pantalla 1 de cada sección: la tarjeta de la experiencia (sin proyectos).
+   Luego una pantalla por proyecto: su descripción (terminal) y el slider. */
+.deck-reels .stage.has-reels.m-intro .col-right { display: none; }
+.deck-reels .stage.has-reels:not(.m-intro) .col-intro { display: none; }
+.deck-reels .project > .exp-projdesc { margin: 0 0 1rem; }
+.deck-reels .project > .exp-projdesc .exp-projdesc-stack { height: auto !important; }
+.deck-reels .project > .exp-projdesc .proj-desc { position: static; }
+/* el nombre ya va en la terminal ($ nombre) */
+.deck-reels .project .proj-name { display: none; }
+.deck-reels .reel-snap { overflow: hidden; }
+/* la copia no repite las animaciones de entrada (quedaría a medio aparecer) */
+.deck-reels .reel-snap, .deck-reels .reel-snap * { animation-play-state: paused !important; animation-delay: -10s !important; transition: none !important; }
+
+/* el ovni se arrastra para recorrer el sitio (área de toque más grande) */
+.deck .px-ufo { pointer-events: auto; cursor: grab; touch-action: none; }
+.deck .px-ufo::after { content: ''; position: absolute; inset: -10px -8px; }
+body.ufo-dragging, body.ufo-dragging .px-ufo { cursor: grabbing; }
+body.ufo-dragging #deck-progress span { transition: none; }

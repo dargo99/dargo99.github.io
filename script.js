@@ -2391,11 +2391,44 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
   if (!stages.length) return;
   stages.forEach(s => s.classList.add('stage'));
 
+  const MOBILE_DECK = window.matchMedia('(max-width: 720px)');  // transición liviana en móvil
+  /* MÓVIL "REELS": la tarjeta de la experiencia va en una pantalla propia (sin
+     la descripción del proyecto) y cada proyecto en otra, con su descripción
+     (la terminal) encima del slider. Las pantallas pasan hacia arriba. La
+     estructura se decide al cargar: si se cruza el límite de ancho, se recarga */
+  const REELS = MOBILE_DECK.matches;
+  MOBILE_DECK.addEventListener('change', () => location.reload());
+  if (REELS) {
+    body.classList.add('deck-reels');
+    stages.forEach(stage => {
+      const intro = stage.querySelector('.col-intro .exp-projdesc');
+      if (!intro) return;
+      const descs = [...intro.querySelectorAll('[data-pdesc]')];
+      stage.querySelectorAll('.col-projects > .project').forEach((proj, i) => {
+        const d = descs.find(x => +x.dataset.pdesc === i);
+        if (!d) return;
+        const box = document.createElement('div');
+        box.className = 'exp-projdesc';
+        const stack = document.createElement('div');
+        stack.className = 'exp-projdesc-stack';
+        stack.appendChild(d);
+        box.appendChild(stack);
+        proj.prepend(box);
+      });
+      intro.remove();
+    });
+  }
+
   const steps = [];
   stages.forEach((stage, si) => {
     const projs = [...stage.querySelectorAll('.col-projects > .project')];
-    if (projs.length) projs.forEach((proj, pi) => steps.push({ stage, si, proj, pi, count: projs.length }));
-    else steps.push({ stage, si, proj: null, pi: 0, count: 0 });
+    if (projs.length) {
+      if (REELS) {
+        stage.classList.add('has-reels');
+        steps.push({ stage, si, proj: null, pi: -1, count: projs.length, intro: true });
+      }
+      projs.forEach((proj, pi) => steps.push({ stage, si, proj, pi, count: projs.length }));
+    } else steps.push({ stage, si, proj: null, pi: 0, count: 0 });
   });
 
   // color de fondo del body (oscuro, con matiz distinto por sección) + glow
@@ -2411,7 +2444,6 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
   // transición al entrar/salir del hero y el about: 'iris' (círculo desde el
   // cursor) o 'wipe' (telón diagonal)
   const LIGHT_TRANSITION = 'iris';
-  const MOBILE_DECK = window.matchMedia('(max-width: 720px)');  // transición liviana en móvil
   const IRIS_MS = 900;   // duración de la apertura del iris (máscara + halo)
 
   const prevBtn  = document.getElementById('deck-prev');
@@ -2478,6 +2510,8 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
 
   /* ---------- estado (clases, UI, eventos) ---------- */
   function applyState(from, to) {
+    // sin tocar la copia de la transición reels (.reel-snap)
+    const q = sel => [...to.stage.querySelectorAll(sel)].filter(el => !el.closest('.reel-snap'));
     stages.forEach(s => {
       const on = s === to.stage;
       s.classList.toggle('is-active', on);
@@ -2487,33 +2521,39 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
       // las animaciones decorativas sólo corren en la diapositiva visible
       s.classList.toggle('anim-off', !on && !(from && s === from.stage));
     });
+    // reels: pantalla de la tarjeta de la experiencia (sin proyecto actual)
+    to.stage.classList.toggle('m-intro', !!to.intro);
+    if (to.intro) {
+      q('.site-pill[data-projs]').forEach(pl => pl.classList.remove('is-current'));
+      q('.exp-note[data-show-projs]').forEach(n => n.classList.remove('is-collapsed'));
+    }
     if (to.proj) {
-      to.stage.querySelectorAll('.col-projects > .project').forEach(p => {
+      q('.col-projects > .project').forEach(p => {
         const on = p === to.proj;
         p.classList.toggle('is-current', on);
         p.classList.toggle('is-leaving', !!from && from.stage === to.stage && p === from.proj && !on);
         p.toggleAttribute('inert', !on);
         p.setAttribute('aria-hidden', String(!on));
       });
-      to.stage.querySelectorAll('[data-pdesc]').forEach(d => {
+      q('[data-pdesc]').forEach(d => {
         d.classList.toggle('is-current', +d.dataset.pdesc === to.pi);
       });
       // enlace al sitio del proyecto que se está viendo: subrayado rojo
-      to.stage.querySelectorAll('.site-pill[data-projs]').forEach(pl => {
+      q('.site-pill[data-projs]').forEach(pl => {
         pl.classList.toggle('is-current', pl.dataset.projs.split(',').includes(String(to.pi)));
       });
       // enlaces que sólo aplican a ciertos proyectos: se ocultan en los demás
-      to.stage.querySelectorAll('.site-pill[data-show-projs]').forEach(pl => {
+      q('.site-pill[data-show-projs]').forEach(pl => {
         pl.hidden = !pl.dataset.showProjs.split(',').includes(String(to.pi));
       });
       // notas de la experiencia que sólo van con ciertos proyectos: se
       // colapsan con transición (ver .exp-note[data-show-projs] en el CSS)
-      to.stage.querySelectorAll('.exp-note[data-show-projs]').forEach(n => {
+      q('.exp-note[data-show-projs]').forEach(n => {
         n.classList.toggle('is-collapsed', !n.dataset.showProjs.split(',').includes(String(to.pi)));
       });
       // en el checkout el enlace de famaedu.com apunta a /apply/ (y su texto
       // dice famaedu.com/apply)
-      to.stage.querySelectorAll('.site-pill[data-alt-proj]').forEach(pl => {
+      q('.site-pill[data-alt-proj]').forEach(pl => {
         if (!pl.dataset.baseHref) {
           pl.dataset.baseHref = pl.getAttribute('href');
           pl.__baseHTML = pl.innerHTML;
@@ -2809,6 +2849,26 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
     });
   }
 
+  // copia estática del contenido de la diapositiva, encima de él, para la
+  // transición reels dentro de una sección (sin videos ni interacción)
+  function reelSnapshot(stage) {
+    const c = stage.querySelector(':scope > .container');
+    const g = c.cloneNode(true);
+    g.querySelectorAll('video').forEach(v => v.remove());
+    g.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+    g.setAttribute('aria-hidden', 'true');
+    g.setAttribute('inert', '');
+    g.classList.add('reel-snap');
+    Object.assign(g.style, {
+      position: 'absolute', margin: '0', pointerEvents: 'none',
+      top: c.offsetTop + 'px', left: c.offsetLeft + 'px',
+      width: c.offsetWidth + 'px', height: c.offsetHeight + 'px',
+    });
+    c.after(g);
+    g.scrollTop = c.scrollTop;
+    return g;
+  }
+
   function animateSwap(outEl, inEl, frames, dur, contentSel, opts) {
     const timing = { duration: dur, easing: EASE, fill: 'both' };
     outEl.style.zIndex = '2';
@@ -2925,6 +2985,10 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
     const from = steps[cur];
     const to = steps[i];
     const dir = i > cur ? 1 : -1;
+    // reels: dentro de la misma sección la pantalla que sale es una copia
+    // (instantánea) del contenido antes del cambio; sube mientras entra la nueva
+    const snap = REELS && from && from.stage === to.stage && !reduced() && !(opts && opts.instant)
+      ? reelSnapshot(from.stage) : null;
     cur = i;
     applyState(from, to);
     if (from) pulseArrow(dir);
@@ -2936,7 +3000,25 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
     playSound('whoosh', 0.14);
     let done, dur;
     const lite = isLite();
-    if (from.stage === to.stage && MOBILE_DECK.matches) {
+    if (snap) {
+      // reels: la pantalla actual sube y la siguiente entra desde abajo
+      // (al revés al retroceder), pegadas como en un feed vertical
+      dur = 520;
+      const box = to.stage.querySelector(':scope > .container');
+      const out = [
+        { transform: 'translate3d(0,0,0)' },
+        { transform: `translate3d(0,${-dir * 100}%,0)` },
+      ];
+      const inn = [
+        { transform: `translate3d(0,${dir * 100}%,0)` },
+        { transform: 'translate3d(0,0,0)' },
+      ];
+      done = animateSwap(snap, box, { out, inn }, dur, null, { noGhost: true, inDelay: 0 }).then(() => {
+        snap.remove();
+        box.getAnimations().forEach(a => a.cancel());
+        box.style.zIndex = '';
+      });
+    } else if (from.stage === to.stage && MOBILE_DECK.matches) {
       // móvil: cambio de proyecto plano (sin 3D, desenfoque ni estela), un
       // deslizamiento horizontal corto con fundido
       dur = 380;
@@ -2971,7 +3053,11 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
         inn.splice(1, 0, { backgroundColor: curtain, offset: 0.8 });
         inn[2].backgroundColor = 'rgba(0,0,0,0)';
       }
-      const out = [
+      // reels: la anterior sube completa, pegada a la que entra
+      const out = REELS ? [
+        { transform: 'translate3d(0, 0, 0)', offset: 0 },
+        { transform: `translate3d(0, ${-dir * 100}%, 0)`, offset: 1 },
+      ] : [
         { transform: 'translate3d(0, 0, 0)', opacity: 1, offset: 0 },
         { transform: `translate3d(0, ${-dir * 18}%, 0)`, opacity: 0, offset: 1 },
       ];
@@ -3039,6 +3125,7 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
     stageIndex: () => (steps[cur] ? steps[cur].si : 0),
     stageCount: () => stages.length,
     index: () => cur,
+    count: () => steps.length,
   };
 
   // si la flecha pasó de imagen, la galería ya hizo su sonido (más bajo)
@@ -3751,6 +3838,42 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
   ufo.className = 'px-ufo';
   ufo.innerHTML = `<svg viewBox="0 0 18 13" shape-rendering="crispEdges" aria-hidden="true"><g class="ufo-beam">${beam}</g><g class="ufo-body">${rects}</g></svg>`;
   bar.appendChild(ufo);
+
+  // ARRASTRAR EL OVNI: la estela sigue al dedo / mouse por la barra y al
+  // soltarlo el deck salta a la diapositiva de esa posición
+  const track = bar.parentElement;
+  let drag = null;
+  const pos = e => {
+    const r = track.getBoundingClientRect();
+    return Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+  };
+  ufo.addEventListener('pointerdown', e => {
+    if (!window.deck || !window.deck.count || e.button > 0) return;
+    e.preventDefault();
+    ufo.setPointerCapture(e.pointerId);
+    // el ovni no salta bajo el dedo: se conserva la distancia al punto tomado
+    drag = { off: parseFloat(bar.style.width || 0) / 100 - pos(e), i: window.deck.index() };
+    document.body.classList.add('ufo-dragging');
+  });
+  ufo.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const f = Math.min(1, Math.max(0, pos(e) + drag.off));
+    const n = window.deck.count();
+    bar.style.width = (f * 100) + '%';
+    drag.i = Math.max(0, Math.ceil(f * n) - 1);
+  });
+  const drop = () => {
+    if (!drag) return;
+    const i = drag.i;
+    drag = null;
+    document.body.classList.remove('ufo-dragging');
+    const n = window.deck.count();
+    // la estela vuelve al largo exacto de la diapositiva elegida
+    bar.style.width = ((i + 1) / n * 100) + '%';
+    if (i !== window.deck.index()) window.deck.goTo(i);
+  };
+  ufo.addEventListener('pointerup', drop);
+  ufo.addEventListener('pointercancel', drop);
 })();
 
 /* ---------- precalentado del deck ----------
