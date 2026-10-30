@@ -2457,6 +2457,7 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
 
   let cur = -1;
   let busy = false;
+  let moveGen = 0;   // número de la transición en curso (para el vigilante)
   let pending = null;
   let probedMoves = 0, slowMoves = 0;   // medición de las primeras transiciones
 
@@ -2598,9 +2599,18 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
     try { history.replaceState(null, '', '#' + id); } catch (_) {}
 
     document.dispatchEvent(new CustomEvent('deck:change', { detail: { index: cur, step: to } }));
-    syncAllSliderVideos();
-    if (window.__bbNav) window.__bbNav();
+    safe(syncAllSliderVideos);
+    if (window.__bbNav) safe(window.__bbNav);
+    safe(() => revealIn(from, to));
+  }
 
+  // los efectos (escritura, reveal, videos…) nunca deben cortar la navegación:
+  // si uno falla se registra el error y el cambio de pantalla sigue
+  function safe(fn) {
+    try { fn(); } catch (err) { console.error('[deck]', err); }
+  }
+
+  function revealIn(from, to) {
     // texto que se escribe + reveal de lo que entra en pantalla
     // (al volver a la tarjeta de la experiencia en reels no hay proyecto: la sección)
     const root = from && from.stage === to.stage && to.proj ? to.proj : to.stage;
@@ -2624,6 +2634,15 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
   }
 
   function cleanup(from, to) {
+    // restos de una transición interrumpida: copias de reels, estelas ghost y
+    // transforms de las animaciones del deck sobre los contenedores
+    document.querySelectorAll('.reel-snap, .ghost-echo').forEach(g => g.remove());
+    stages.forEach(s => {
+      const c = s.querySelector(':scope > .container');
+      if (!c) return;
+      c.getAnimations().forEach(a => { if (!(a instanceof CSSAnimation) && !(a instanceof CSSTransition)) a.cancel(); });
+      c.style.zIndex = '';
+    });
     stages.forEach(s => {
       s.classList.remove('is-leaving', 'iris-reveal');
       s.classList.toggle('anim-off', s !== to.stage);
@@ -2996,7 +3015,8 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
     const snap = REELS && from && from.stage === to.stage && !reduced() && !(opts && opts.instant)
       ? reelSnapshot(from.stage) : null;
     cur = i;
-    applyState(from, to);
+    const gen = ++moveGen;
+    safe(() => applyState(from, to));
     if (from) pulseArrow(dir);
 
     if (!from || reduced() || (opts && opts.instant)) { cleanup(from, to); return; }
@@ -3025,9 +3045,6 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
         box.style.zIndex = '';
       };
       done = animateSwap(snap, box, { out, inn }, dur, null, { noGhost: true, inDelay: 0 }).then(unsnap);
-      // respaldo: si la pestaña deja de pintar a mitad de camino (app en
-      // segundo plano), la copia no se queda encima del contenido
-      setTimeout(() => { if (snap.isConnected) unsnap(); }, dur + 900);
     } else if (from.stage === to.stage && MOBILE_DECK.matches) {
       // móvil: cambio de proyecto plano (sin 3D, desenfoque ni estela), un
       // deslizamiento horizontal corto con fundido
@@ -3109,7 +3126,11 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
       dur = 680;
       done = animateSwap(from.stage, to.stage, stageFrames(dir), dur, ':scope > .container', lite ? { noGhost: true } : null);
     }
-    done.then(() => cleanup(from, to));
+    // cierre único: al terminar la animación o, si algo la traba (un error,
+    // la pestaña deja de pintar), por el vigilante; nunca dos veces
+    const finish = () => { if (gen === moveGen && busy) cleanup(from, to); };
+    done.then(finish);
+    setTimeout(finish, dur + 1000);
     // las primeras transiciones (con todos los efectos) también se miden;
     // la PRIMERA no cuenta (el navegador prepara capas por primera vez y
     // siempre da tirones); de las 4 siguientes, 3 deben ir lentas
