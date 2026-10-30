@@ -5075,8 +5075,10 @@ body.fx-idle *, body.fx-idle *::before, body.fx-idle *::after {
 /* ===== MÓVIL "REELS" (body.deck-reels, lo pone el JS en ≤720px) =====
    Pantalla 1 de cada sección: la tarjeta de la experiencia (sin proyectos).
    Luego una pantalla por proyecto: su descripción (terminal) y el slider. */
-.deck-reels .stage.has-reels.m-intro .col-right { display: none; }
-.deck-reels .stage.has-reels:not(.m-intro) .col-intro { display: none; }
+/* cada pantalla es un .container de la sección: apiladas en el mismo sitio;
+   sólo se ve la actual (.reel-on) y, mientras se mueve, la que sale */
+.deck-reels #page > .stage.has-reels > .container { position: absolute; inset: 0; margin: 0 auto; }
+.deck-reels #page > .stage.has-reels > .container:not(.reel-on):not(.reel-out) { visibility: hidden; }
 .deck-reels .project > .exp-projdesc { margin: 0 0 1rem; }
 .deck-reels .project > .exp-projdesc .exp-projdesc-stack { height: auto !important; }
 .deck-reels .project > .exp-projdesc .proj-desc {
@@ -5086,21 +5088,12 @@ body.fx-idle *, body.fx-idle *::before, body.fx-idle *::after {
 }
 /* el nombre ya va en la terminal ($ nombre) */
 .deck-reels .project .proj-name { display: none; }
-.deck-reels .reel-snap { overflow: hidden; }
-/* la copia no repite las animaciones de entrada (quedaría a medio aparecer) */
-.deck-reels .reel-snap, .deck-reels .reel-snap * { animation-play-state: paused !important; animation-delay: -10s !important; transition: none !important; }
 
 /* el ovni se arrastra para recorrer el sitio (área de toque más grande) */
 .deck .px-ufo { pointer-events: auto; cursor: grab; touch-action: none; }
 .deck .px-ufo::after { content: ''; position: absolute; inset: -10px -8px; }
 body.ufo-dragging, body.ufo-dragging .px-ufo { cursor: grabbing; }
 body.ufo-dragging #deck-progress span { transition: none; }
-/* reels: el proyecto que sale ya va en la copia que sube; el original se
-   oculta en el acto (si no, se encimaba con el que entra) */
-.deck-reels .col-projects > .project.is-leaving { visibility: hidden; }
-/* reels: sólo el proyecto actual ocupa sitio (los demás, apilados en la misma
-   celda, alargaban la pantalla al alto del más alto) */
-.deck-reels .col-projects > .project:not(.is-current) { display: none; }
 /* reels: sin miniaturas (el slider se recorre con sus flechas o deslizando)
    para que el proyecto quepa en una pantalla */
 .deck-reels .col-projects .slider > .thumbs { display: none; }

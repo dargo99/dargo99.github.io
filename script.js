@@ -2394,8 +2394,10 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
   const MOBILE_DECK = window.matchMedia('(max-width: 720px)');  // transición liviana en móvil
   /* MÓVIL "REELS": la tarjeta de la experiencia va en una pantalla propia (sin
      la descripción del proyecto) y cada proyecto en otra, con su descripción
-     (la terminal) encima del slider. Las pantallas pasan hacia arriba. La
-     estructura se decide al cargar: si se cruza el límite de ancho, se recarga */
+     (la terminal) encima del slider. Cada pantalla es un .container REAL de la
+     sección (apilados en el mismo sitio, con su propio scroll): al cambiar,
+     la que sale y la que entra se mueven juntas, sin copias. La estructura se
+     decide al cargar: si se cruza el límite de ancho, se recarga */
   const REELS = MOBILE_DECK.matches;
   MOBILE_DECK.addEventListener('change', () => location.reload());
   if (REELS) {
@@ -2417,18 +2419,50 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
       });
       intro.remove();
     });
+    // una pantalla por proyecto: mismo .container (padding, scroll, centrado)
+    // con su propio encabezado "Project 0X / 0N" y el artículo dentro de
+    // .col-right > .col-projects, así los estilos del proyecto no cambian
+    stages.forEach(stage => {
+      const first = stage.querySelector(':scope > .container');
+      const right = first && first.querySelector('.col-right');
+      if (!right) return;
+      const head = right.querySelector('.col-projects-head');
+      const projs = [...right.querySelectorAll('.col-projects > .project')];
+      let prev = first;
+      projs.forEach(proj => {
+        const scr = first.cloneNode(false);
+        scr.removeAttribute('id');
+        const cols = document.createElement('div');
+        cols.className = 'stage-cols';
+        const col = document.createElement('div');
+        col.className = 'col-right';
+        const list = document.createElement('div');
+        list.className = 'col-projects';
+        list.appendChild(proj);
+        if (head) col.appendChild(head.cloneNode(true));
+        col.appendChild(list);
+        cols.appendChild(col);
+        scr.appendChild(cols);
+        prev.after(scr);
+        prev = scr;
+      });
+      right.remove();
+    });
   }
 
   const steps = [];
   stages.forEach((stage, si) => {
     const projs = [...stage.querySelectorAll('.col-projects > .project')];
     if (projs.length) {
+      const box0 = stage.querySelector(':scope > .container');
       if (REELS) {
         stage.classList.add('has-reels');
-        steps.push({ stage, si, proj: null, pi: -1, count: projs.length, intro: true });
+        steps.push({ stage, si, proj: null, pi: -1, count: projs.length, intro: true, box: box0 });
       }
-      projs.forEach((proj, pi) => steps.push({ stage, si, proj, pi, count: projs.length }));
-    } else steps.push({ stage, si, proj: null, pi: 0, count: 0 });
+      // box: el contenedor con scroll de esa pantalla (en reels, el de cada proyecto)
+      projs.forEach((proj, pi) => steps.push({ stage, si, proj, pi, count: projs.length,
+        box: REELS ? proj.closest('.container') : box0 }));
+    } else steps.push({ stage, si, proj: null, pi: 0, count: 0, box: stage.querySelector(':scope > .container') });
   });
 
   // color de fondo del body (oscuro, con matiz distinto por sección) + glow
@@ -2466,7 +2500,7 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
   // desplazan hacia abajo / arriba)
   function syncArrows() {
     const st = steps[cur];
-    const sc = st && st.stage.querySelector(':scope > .container');
+    const sc = st && st.box;
     const canUp = !!sc && sc.scrollTop > 1;
     const canDown = !!sc && sc.scrollTop + sc.clientHeight < sc.scrollHeight - 1;
     if (prevBtn) prevBtn.disabled = cur === 0 && !canUp;
@@ -2511,8 +2545,7 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
 
   /* ---------- estado (clases, UI, eventos) ---------- */
   function applyState(from, to) {
-    // sin tocar la copia de la transición reels (.reel-snap)
-    const q = sel => [...to.stage.querySelectorAll(sel)].filter(el => !el.closest('.reel-snap'));
+    const q = sel => to.stage.querySelectorAll(sel);
     stages.forEach(s => {
       const on = s === to.stage;
       s.classList.toggle('is-active', on);
@@ -2522,8 +2555,13 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
       // las animaciones decorativas sólo corren en la diapositiva visible
       s.classList.toggle('anim-off', !on && !(from && s === from.stage));
     });
-    // reels: pantalla de la tarjeta de la experiencia (sin proyecto actual)
-    to.stage.classList.toggle('m-intro', !!to.intro);
+    // reels: sólo se ve la pantalla actual (y la que sale, mientras se mueve)
+    if (REELS) to.stage.querySelectorAll(':scope > .container').forEach(c => {
+      const on = c === to.box;
+      c.classList.toggle('reel-on', on);
+      c.classList.toggle('reel-out', !on && !!from && c === from.box);
+      c.toggleAttribute('inert', !on);
+    });
     if (to.intro) {
       q('.site-pill[data-projs]').forEach(pl => pl.classList.remove('is-current'));
       q('.exp-note[data-show-projs]').forEach(n => n.classList.remove('is-collapsed'));
@@ -2569,7 +2607,7 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
         } else pl.innerHTML = pl.__baseHTML;
       });
       fitDescStack(to.stage.querySelector('.exp-projdesc-stack'));
-      const pager = to.stage.querySelector('.proj-pager');
+      const pager = to.box.querySelector('.proj-pager');
       if (pager) {
         pager.querySelectorAll('button').forEach((b, i) => b.setAttribute('aria-current', String(i === to.pi)));
         const lbl = pager.querySelector('.proj-pager-count');
@@ -2634,15 +2672,14 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
   }
 
   function cleanup(from, to) {
-    // restos de una transición interrumpida: copias de reels, estelas ghost y
-    // transforms de las animaciones del deck sobre los contenedores
-    document.querySelectorAll('.reel-snap, .ghost-echo').forEach(g => g.remove());
-    stages.forEach(s => {
-      const c = s.querySelector(':scope > .container');
-      if (!c) return;
+    // restos de una transición interrumpida: estelas ghost y transforms de
+    // las animaciones del deck sobre los contenedores (pantallas reels)
+    document.querySelectorAll('.ghost-echo').forEach(g => g.remove());
+    stages.forEach(s => s.querySelectorAll(':scope > .container').forEach(c => {
       c.getAnimations().forEach(a => { if (!(a instanceof CSSAnimation) && !(a instanceof CSSTransition)) a.cancel(); });
       c.style.zIndex = '';
-    });
+      c.classList.remove('reel-out');
+    }));
     stages.forEach(s => {
       s.classList.remove('is-leaving', 'iris-reveal');
       s.classList.toggle('anim-off', s !== to.stage);
@@ -2869,31 +2906,6 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
     });
   }
 
-  // copia estática del contenido de la diapositiva, encima de él, para la
-  // transición reels dentro de una sección (sin videos ni interacción)
-  function reelSnapshot(stage) {
-    const c = stage.querySelector(':scope > .container');
-    const g = c.cloneNode(true);
-    g.querySelectorAll('video').forEach(v => v.remove());
-    g.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
-    g.setAttribute('aria-hidden', 'true');
-    g.setAttribute('inert', '');
-    g.classList.add('reel-snap');
-    // sólo lo que se ve: clonar todos los proyectos (con sus imágenes)
-    // retrasaba el arranque de la animación
-    g.querySelectorAll('.col-projects > .project:not(.is-current)').forEach(el => el.remove());
-    const hidden = g.querySelector(stage.classList.contains('m-intro') ? '.col-right' : '.col-intro');
-    if (hidden) hidden.remove();
-    Object.assign(g.style, {
-      position: 'absolute', margin: '0', pointerEvents: 'none',
-      top: c.offsetTop + 'px', left: c.offsetLeft + 'px',
-      width: c.offsetWidth + 'px', height: c.offsetHeight + 'px',
-    });
-    c.after(g);
-    g.scrollTop = c.scrollTop;
-    return g;
-  }
-
   function animateSwap(outEl, inEl, frames, dur, contentSel, opts) {
     const timing = { duration: dur, easing: EASE, fill: 'both' };
     outEl.style.zIndex = '2';
@@ -3010,10 +3022,6 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
     const from = steps[cur];
     const to = steps[i];
     const dir = i > cur ? 1 : -1;
-    // reels: dentro de la misma sección la pantalla que sale es una copia
-    // (instantánea) del contenido antes del cambio; sube mientras entra la nueva
-    const snap = REELS && from && from.stage === to.stage && !reduced() && !(opts && opts.instant)
-      ? reelSnapshot(from.stage) : null;
     cur = i;
     const gen = ++moveGen;
     safe(() => applyState(from, to));
@@ -3026,11 +3034,10 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
     playSound('whoosh', 0.14);
     let done, dur;
     const lite = isLite();
-    if (snap) {
+    if (REELS && from.stage === to.stage) {
       // reels: la pantalla actual sube y la siguiente entra desde abajo
       // (al revés al retroceder), pegadas como en un feed vertical
       dur = 520;
-      const box = to.stage.querySelector(':scope > .container');
       const out = [
         { transform: 'translate3d(0,0,0)' },
         { transform: `translate3d(0,${-dir * 100}%,0)` },
@@ -3039,12 +3046,7 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
         { transform: `translate3d(0,${dir * 100}%,0)` },
         { transform: 'translate3d(0,0,0)' },
       ];
-      const unsnap = () => {
-        snap.remove();
-        box.getAnimations().forEach(a => a.cancel());
-        box.style.zIndex = '';
-      };
-      done = animateSwap(snap, box, { out, inn }, dur, null, { noGhost: true, inDelay: 0 }).then(unsnap);
+      done = animateSwap(from.box, to.box, { out, inn }, dur, null, { noGhost: true, inDelay: 0 });
     } else if (from.stage === to.stage && MOBILE_DECK.matches) {
       // móvil: cambio de proyecto plano (sin 3D, desenfoque ni estela), un
       // deslizamiento horizontal corto con fundido
@@ -3160,7 +3162,7 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
       if (!sm) return;
       sm.style.height = '';
       sm.style.aspectRatio = '';
-      const c = s.stage.querySelector(':scope > .container');
+      const c = s.box;
       const over = c.scrollHeight - c.clientHeight;
       if (over <= 0) return;
       const h = Math.max(140, sm.offsetHeight - over);
@@ -3184,7 +3186,7 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
   // las flechas del deck avanzan como las teclas ↓ ↑: primero recorren el
   // contenido de la diapositiva si desborda y luego pasan de proyecto
   function arrowStep(dir) {
-    const sc = steps[cur] && steps[cur].stage.querySelector(':scope > .container');
+    const sc = steps[cur] && steps[cur].box;
     if (sc && scrollerFor(sc, false, dir)) {
       // si lo que falta cabe en una pantalla, va hasta el final de una vez
       // (antes avanzaba el 80% y en móvil había que tocar dos veces)
@@ -3428,7 +3430,7 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
     if (fa && fa !== document.body && fa.blur) fa.blur();
     // si la diapositiva desborda, primero recorre su contenido (sólo vertical)
     const vertical = e.key !== 'ArrowRight' && e.key !== 'ArrowLeft';
-    const sc = steps[cur] && steps[cur].stage.querySelector(':scope > .container');
+    const sc = steps[cur] && steps[cur].box;
     if (vertical && sc && scrollerFor(sc, false, dir)) {
       sc.scrollBy({ top: dir * sc.clientHeight * 0.8, behavior: reduced() ? 'auto' : 'smooth' });
       return;
@@ -4571,8 +4573,7 @@ document.addEventListener('deck:change', e => {
   const d = e.detail || {};
   const back = lastDeckIndex !== null && d.index < lastDeckIndex;
   lastDeckIndex = d.index;
-  const st = d.step && d.step.stage;
-  const box = st && st.querySelector(':scope > .container');
+  const box = d.step && d.step.box;
   if (!box) return;
   const idx = d.index;
   // al cambiar de SECCIÓN el contenedor aún no se ve (scrollHeight 0): se
