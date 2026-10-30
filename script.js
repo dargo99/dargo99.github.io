@@ -328,21 +328,33 @@ document.addEventListener('visibilitychange', () => {
   document.body.classList.toggle('tab-hidden', document.hidden);
 });
 
-// táctil: el cursor aparece donde se toca y se desvanece 2 s después del
-// último toque (con mouse se queda siempre visible)
+// táctil: el cursor aparece sólo con un TOQUE (no al deslizar para hacer
+// scroll) y se desvanece 2 s después; con mouse se queda siempre visible
 (function () {
   if (!cursor) return;
-  let t = 0;
-  const show = () => { clearTimeout(t); document.body.classList.remove('cursor-gone'); };
-  window.addEventListener('pointerdown', show, { passive: true });
-  window.addEventListener('pointermove', show, { passive: true });
-  const hideLater = e => {
+  const body = document.body;
+  let t = 0, down = null;
+  const show = () => { clearTimeout(t); body.classList.remove('cursor-gone'); };
+  const hide = () => { clearTimeout(t); body.classList.add('cursor-gone'); };
+  window.addEventListener('pointerdown', e => {
+    if (e.pointerType !== 'touch') { show(); return; }
+    down = { x: e.clientX, y: e.clientY };
+  }, { passive: true });
+  window.addEventListener('pointermove', e => {
+    if (e.pointerType !== 'touch') { show(); return; }
+    // el dedo se desliza (scroll / swipe): el cursor no se muestra
+    if (down && Math.hypot(e.clientX - down.x, e.clientY - down.y) > 10) { down = null; hide(); }
+  }, { passive: true });
+  const up = e => {
     if (e.pointerType !== 'touch') return;
-    clearTimeout(t);
-    t = setTimeout(() => document.body.classList.add('cursor-gone'), 2000);
+    const tap = !!down && e.type === 'pointerup';
+    down = null;
+    if (!tap) { hide(); return; }
+    show();
+    t = setTimeout(hide, 2000);
   };
-  window.addEventListener('pointerup', hideLater, { passive: true });
-  window.addEventListener('pointercancel', hideLater, { passive: true });
+  window.addEventListener('pointerup', up, { passive: true });
+  window.addEventListener('pointercancel', up, { passive: true });
 })();
 
 let mx = -100, my = -100;
