@@ -2241,6 +2241,10 @@ body.deck {
 /* la entrada la anima el deck (3D); el reveal clásico sobra aquí */
 .deck .project.reveal,
 .deck .exp-intro.reveal { opacity: 1; transform: none; transition: none; }
+/* reels (móvil): la pantalla ya entra deslizándose; si las piezas de
+   Freelance además suben 36px, siguen moviéndose cuando la pantalla ya
+   paró y se siente un rebote → sólo aparecen con fundido */
+.deck-reels .design-item.reveal { transform: none; transition: opacity 0.5s ease; }
 
 .deck .col-projects .proj-head { margin-bottom: 1rem; padding-top: 1rem; }
 /* el visor se dimensiona por el ALTO disponible para que todo el proyecto
