@@ -5127,5 +5127,11 @@ body.cursor-gone #cursor { opacity: 0; }
 
 /* manos pixel art del cursor propio (sin la mano del sistema): abierta sobre
    el ovni y cerrada mientras se arrastra; la línea de progreso usa el puntero */
-body.cur-grab #cursor { background-image: url('img/hand-open.png?v=2'); }
-body.ufo-dragging #cursor { background-image: url('img/hand-grab.png?v=2'); }
+body.cur-grab #cursor,
+body.ufo-dragging #cursor {
+  --hx: 17px; --hy: 20px;            /* centro de la palma */
+  width: 34px; height: 34px;         /* sprite de 17x17 a 2px por píxel */
+  background-image: url('img/px/hand-open.svg');
+  transform: translate(calc(-1 * var(--hx)), calc(-1 * var(--hy)));
+}
+body.ufo-dragging #cursor { background-image: url('img/px/hand-grab.svg'); }
