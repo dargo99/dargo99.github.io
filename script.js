@@ -3120,6 +3120,27 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
     if (i >= 0) goTo(i);
   }
 
+  // reels: si el proyecto no cabe en la pantalla (celulares bajos), el visor
+  // del slider se achica lo que sobra → un toque siempre pasa de proyecto
+  if (REELS) {
+    const fitReel = () => {
+      const s = steps[cur];
+      const sm = s && s.proj && s.proj.querySelector('.slider-main');
+      if (!sm) return;
+      sm.style.height = '';
+      sm.style.aspectRatio = '';
+      const c = s.stage.querySelector(':scope > .container');
+      const over = c.scrollHeight - c.clientHeight;
+      if (over <= 0) return;
+      const h = Math.max(140, sm.offsetHeight - over);
+      sm.style.aspectRatio = 'auto';
+      sm.style.height = h + 'px';
+    };
+    document.addEventListener('deck:change', () => requestAnimationFrame(fitReel));
+    window.addEventListener('resize', fitReel);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitReel);
+  }
+
   window.deck = {
     next, prev, goTo, goToStage,
     stageIndex: () => (steps[cur] ? steps[cur].si : 0),

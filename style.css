@@ -5079,7 +5079,11 @@ body.fx-idle *, body.fx-idle *::before, body.fx-idle *::after {
 .deck-reels .stage.has-reels:not(.m-intro) .col-intro { display: none; }
 .deck-reels .project > .exp-projdesc { margin: 0 0 1rem; }
 .deck-reels .project > .exp-projdesc .exp-projdesc-stack { height: auto !important; }
-.deck-reels .project > .exp-projdesc .proj-desc { position: static; }
+.deck-reels .project > .exp-projdesc .proj-desc {
+  position: static;
+  /* sin el relleno de .col-projects .proj-desc: la terminal ya tiene el suyo */
+  margin: 0; padding: 0; font-size: 12px; line-height: 1.5;
+}
 /* el nombre ya va en la terminal ($ nombre) */
 .deck-reels .project .proj-name { display: none; }
 .deck-reels .reel-snap { overflow: hidden; }
@@ -5094,3 +5098,9 @@ body.ufo-dragging #deck-progress span { transition: none; }
 /* reels: el proyecto que sale ya va en la copia que sube; el original se
    oculta en el acto (si no, se encimaba con el que entra) */
 .deck-reels .col-projects > .project.is-leaving { visibility: hidden; }
+/* reels: sólo el proyecto actual ocupa sitio (los demás, apilados en la misma
+   celda, alargaban la pantalla al alto del más alto) */
+.deck-reels .col-projects > .project:not(.is-current) { display: none; }
+/* reels: sin miniaturas (el slider se recorre con sus flechas o deslizando)
+   para que el proyecto quepa en una pantalla */
+.deck-reels .col-projects .slider > .thumbs { display: none; }
