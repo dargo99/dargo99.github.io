@@ -5135,3 +5135,5 @@ body.ufo-dragging #cursor {
   transform: translate(calc(-1 * var(--hx)), calc(-1 * var(--hy)));
 }
 body.ufo-dragging #cursor { background-image: url('img/px/hand-grab.svg'); }
+/* arrastrando el ovni no se selecciona texto */
+body.ufo-dragging, body.ufo-dragging * { user-select: none; -webkit-user-select: none; }

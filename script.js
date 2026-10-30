@@ -3963,7 +3963,8 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
   };
   track.addEventListener('pointerdown', e => {
     if (!window.deck || !window.deck.count || e.button > 0) return;
-    e.preventDefault();
+    // sin preventDefault: anularía los mousemove mientras se arrastra y el
+    // cursor del sitio se quedaba quieto (la selección de texto la evita el CSS)
     try { track.setPointerCapture(e.pointerId); } catch (_) {}
     // tomado del ovni: no salta bajo el dedo (se conserva la distancia);
     // en otro punto de la línea, el ovni va directo ahí
