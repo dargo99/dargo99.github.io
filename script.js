@@ -3841,8 +3841,8 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
   ufo.innerHTML = `<svg viewBox="0 0 18 13" shape-rendering="crispEdges" aria-hidden="true"><g class="ufo-beam">${beam}</g><g class="ufo-body">${rects}</g></svg>`;
   bar.appendChild(ufo);
 
-  // ARRASTRAR EL OVNI: la estela sigue al dedo / mouse por la barra y al
-  // soltarlo el deck salta a la diapositiva de esa posición
+  // ARRASTRAR EL OVNI: la estela sigue al dedo / mouse por la barra y el deck
+  // va mostrando la diapositiva de esa posición mientras se arrastra
   const track = bar.parentElement;
   let drag = null;
   const pos = e => {
@@ -3861,8 +3861,13 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
     if (!drag) return;
     const f = Math.min(1, Math.max(0, pos(e) + drag.off));
     const n = window.deck.count();
+    const i = Math.max(0, Math.ceil(f * n) - 1);
+    // se navega en vivo (sin animación) a medida que se mueve el ovni
+    if (i !== drag.i) {
+      drag.i = i;
+      window.deck.goTo(i, { instant: true });
+    }
     bar.style.width = (f * 100) + '%';
-    drag.i = Math.max(0, Math.ceil(f * n) - 1);
   });
   const drop = () => {
     if (!drag) return;
@@ -3872,7 +3877,6 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
     const n = window.deck.count();
     // la estela vuelve al largo exacto de la diapositiva elegida
     bar.style.width = ((i + 1) / n * 100) + '%';
-    if (i !== window.deck.index()) window.deck.goTo(i);
   };
   ufo.addEventListener('pointerup', drop);
   ufo.addEventListener('pointercancel', drop);
