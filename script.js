@@ -1655,7 +1655,8 @@ document.getElementById('lb-close').addEventListener('click', closeLightbox);
 onSwipe(lightbox, dir => { if (lightbox.classList.contains('active')) lbStep(dir); });
 document.getElementById('lb-prev').addEventListener('click', () => lbStep(-1));
 document.getElementById('lb-next').addEventListener('click', () => lbStep(1));
-lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
+// como en el zoom: tocar el fondo o la propia imagen cierra el visor
+lightbox.addEventListener('click', e => { if (e.target === lightbox || e.target === lbImg) closeLightbox(); });
 
 document.addEventListener('keydown', e => {
   if (lightbox.classList.contains('active') && e.key === 'Tab') {
