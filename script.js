@@ -481,9 +481,10 @@ function detect() {
     (el.closest('.slide') && (el.tagName === 'IMG' || el.tagName === 'VIDEO')) ||
     el.closest('.design-item')
   ));
-  // línea de progreso / ovni: mano abierta (y cerrada mientras se arrastra)
-  const overGrab = !overMag && !!(el && el.closest('#deck-progress'));
-  const overLink = !overMag && !overGrab && !!(el && el.closest('a, button'));
+  // el ovni: mano abierta (cerrada mientras se arrastra); el resto de la
+  // línea de progreso usa el cursor de puntero, como un enlace
+  const overGrab = !overMag && !!(el && el.closest('.px-ufo'));
+  const overLink = !overMag && !overGrab && !!(el && el.closest('a, button, #deck-progress'));
   curMag = overMag ? 'in' : null;
   body.classList.toggle('mag-in', overMag);
   body.classList.toggle('cur-link', overLink);

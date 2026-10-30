@@ -5098,7 +5098,7 @@ body.ufo-dragging #deck-progress span { transition: none; }
 .deck-reels .col-projects .slider > .thumbs { display: none; }
 /* la línea de progreso se toca como la de un video: área de toque más alta */
 .deck #deck-progress { pointer-events: auto; touch-action: none; }
-.deck #deck-progress::after { content: ''; position: absolute; left: 0; right: 0; top: -4px; bottom: -10px; }
+.deck #deck-progress::after { content: ''; position: absolute; left: 0; right: 0; top: -4px; bottom: -10px; z-index: -1; }   /* detrás del ovni */
 /* About apilado (móvil y tablet): avatar y texto más juntos */
 @media (max-width: 900px) {
   .about-grid { row-gap: 1.6rem; }
@@ -5126,6 +5126,6 @@ body.ufo-dragging #deck-progress span { transition: none; }
 body.cursor-gone #cursor { opacity: 0; }
 
 /* manos pixel art del cursor propio (sin la mano del sistema): abierta sobre
-   la línea de progreso / ovni y cerrada mientras se arrastra */
+   el ovni y cerrada mientras se arrastra; la línea de progreso usa el puntero */
 body.cur-grab #cursor { background-image: url('img/hand-open.png'); }
 body.ufo-dragging #cursor { background-image: url('img/hand-grab.png'); }
