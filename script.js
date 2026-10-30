@@ -2527,6 +2527,7 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
   let cur = -1;
   let busy = false;
   let moveGen = 0;   // número de la transición en curso (para el vigilante)
+  let moving = null; // { from, to } de la transición en curso
   let pending = null;
   let probedMoves = 0, slowMoves = 0;   // medición de las primeras transiciones
 
@@ -2671,7 +2672,9 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
     body.classList.toggle('deck-at-end', cur === steps.length - 1);
     setActiveNav(id);
     if (countEl) countEl.textContent = pad(cur + 1) + ' / ' + pad(steps.length);
-    if (progress) progress.style.width = ((cur + 1) / steps.length * 100) + '%';
+    // mientras se arrastra el ovni, la estela la maneja el arrastre (si no,
+    // cada salto la devolvía al largo de la diapositiva y el ovni no seguía al dedo)
+    if (progress && !body.classList.contains('ufo-dragging')) progress.style.width = ((cur + 1) / steps.length * 100) + '%';
     syncArrows();
     try { history.replaceState(null, '', '#' + id); } catch (_) {}
 
@@ -3052,6 +3055,12 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
   function goTo(i, opts) {
     i = Math.max(0, Math.min(steps.length - 1, i));
     if (warmStop) warmStop();
+    if (busy && opts && opts.instant && moving) {
+      // salto instantáneo (arrastre del ovni): la transición en curso se
+      // cierra en el acto en vez de encolar el salto detrás de ella
+      pending = null;
+      cleanup(moving.from, moving.to);
+    }
     if (busy) {
       if (i !== cur) { pending = i; hurryCurrent(); }
       else pending = null;
@@ -3063,6 +3072,7 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
     const dir = i > cur ? 1 : -1;
     cur = i;
     const gen = ++moveGen;
+    moving = { from, to };
     safe(() => applyState(from, to));
     if (from) pulseArrow(dir);
 
@@ -3958,7 +3968,9 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
     // tomado del ovni: no salta bajo el dedo (se conserva la distancia);
     // en otro punto de la línea, el ovni va directo ahí
     const onUfo = ufo.contains(e.target);
-    drag = { off: onUfo ? parseFloat(bar.style.width || 0) / 100 - pos(e) : 0, i: window.deck.index() };
+    // largo VISIBLE de la estela (puede estar a mitad de su transición)
+    const shown = bar.getBoundingClientRect().width / track.getBoundingClientRect().width;
+    drag = { off: onUfo ? shown - pos(e) : 0, i: window.deck.index() };
     document.body.classList.add('ufo-dragging');
     if (!onUfo) seek(e);
   });
