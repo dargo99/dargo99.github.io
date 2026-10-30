@@ -1803,9 +1803,8 @@ footer .micro { color: rgba(246,244,239,0.7); }
   #topbar ul::-webkit-scrollbar { display: none; }
   #topbar ul a { font-size: 0.8rem; white-space: nowrap; }
   #topbar ul a .micro { display: none; }
-  /* Download CV: solo icono en móvil (no ocultarlo) */
-  #topbar .btn-light { display: flex; align-items: center; justify-content: center; padding: 0.45rem; min-width: 37px; gap: 0; }
-  #topbar .btn-light .cv-text { display: none; }
+  /* CV.pdf: texto + flecha también en móvil, más compacto */
+  #topbar .btn-light { display: flex; align-items: center; justify-content: center; padding: 0.45rem 0.6rem; min-width: 37px; gap: 6px; }
   #topbar .btn-light .cv-icon { display: block; }
 
   #bottombar { gap: 1.2rem; }
