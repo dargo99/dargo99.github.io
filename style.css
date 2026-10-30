@@ -4647,7 +4647,7 @@ body.deck-light .deck-arrow.is-pulse:not(:disabled) {
 /* "+3": menú desplegable con los demás sitios de FAMA. Va fijo en pantalla
    (el JS lo coloca junto al botón) para que no lo recorte la tarjeta ni
    cambie su alto; se cierra con el mismo botón, Escape o un clic afuera */
-.site-pill.site-more { font-family: inherit; line-height: inherit; cursor: pointer; }
+.site-pill.site-more { font-family: inherit; line-height: inherit; cursor: none; }
 .deck .exp-intro .site-pill.site-more[aria-expanded="true"] { background: var(--on-band); color: var(--cream); }
 .deck .exp-intro .site-pill.site-more[aria-expanded="true"]::before { opacity: 0; }
 .site-menu {
@@ -5090,15 +5090,14 @@ body.fx-idle *, body.fx-idle *::before, body.fx-idle *::after {
 .deck-reels .project .proj-name { display: none; }
 
 /* el ovni se arrastra para recorrer el sitio (área de toque más grande) */
-.deck .px-ufo { pointer-events: auto; cursor: grab; touch-action: none; }
+.deck .px-ufo { pointer-events: auto; touch-action: none; }
 .deck .px-ufo::after { content: ''; position: absolute; inset: -10px -8px; }
-body.ufo-dragging, body.ufo-dragging .px-ufo { cursor: grabbing; }
 body.ufo-dragging #deck-progress span { transition: none; }
 /* reels: sin miniaturas (el slider se recorre con sus flechas o deslizando)
    para que el proyecto quepa en una pantalla */
 .deck-reels .col-projects .slider > .thumbs { display: none; }
 /* la línea de progreso se toca como la de un video: área de toque más alta */
-.deck #deck-progress { pointer-events: auto; cursor: pointer; touch-action: none; }
+.deck #deck-progress { pointer-events: auto; touch-action: none; }
 .deck #deck-progress::after { content: ''; position: absolute; left: 0; right: 0; top: -4px; bottom: -10px; }
 /* About apilado (móvil y tablet): avatar y texto más juntos */
 @media (max-width: 900px) {
@@ -5125,3 +5124,8 @@ body.ufo-dragging #deck-progress span { transition: none; }
 /* táctil: el cursor se desvanece 3 s después del último toque */
 #cursor { transition: transform 0.1s ease, opacity 0.4s ease; }
 body.cursor-gone #cursor { opacity: 0; }
+
+/* manos pixel art del cursor propio (sin la mano del sistema): abierta sobre
+   la línea de progreso / ovni y cerrada mientras se arrastra */
+body.cur-grab #cursor { background-image: url('img/hand-open.png'); }
+body.ufo-dragging #cursor { background-image: url('img/hand-grab.png'); }

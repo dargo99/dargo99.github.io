@@ -481,10 +481,13 @@ function detect() {
     (el.closest('.slide') && (el.tagName === 'IMG' || el.tagName === 'VIDEO')) ||
     el.closest('.design-item')
   ));
-  const overLink = !overMag && !!(el && el.closest('a, button'));
+  // línea de progreso / ovni: mano abierta (y cerrada mientras se arrastra)
+  const overGrab = !overMag && !!(el && el.closest('#deck-progress'));
+  const overLink = !overMag && !overGrab && !!(el && el.closest('a, button'));
   curMag = overMag ? 'in' : null;
   body.classList.toggle('mag-in', overMag);
   body.classList.toggle('cur-link', overLink);
+  body.classList.toggle('cur-grab', overGrab);
   if (overMag) {
     // la lupa se invierte sola (mix-blend-mode: difference); no usamos on-dark
     if (cursorIsDark) { cursorIsDark = false; cursor.classList.remove('on-dark'); }
@@ -3950,7 +3953,7 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
   track.addEventListener('pointerdown', e => {
     if (!window.deck || !window.deck.count || e.button > 0) return;
     e.preventDefault();
-    track.setPointerCapture(e.pointerId);
+    try { track.setPointerCapture(e.pointerId); } catch (_) {}
     // tomado del ovni: no salta bajo el dedo (se conserva la distancia);
     // en otro punto de la línea, el ovni va directo ahí
     const onUfo = ufo.contains(e.target);
