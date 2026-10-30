@@ -2602,7 +2602,8 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
     if (window.__bbNav) window.__bbNav();
 
     // texto que se escribe + reveal de lo que entra en pantalla
-    const root = from && from.stage === to.stage ? to.proj : to.stage;
+    // (al volver a la tarjeta de la experiencia en reels no hay proyecto: la sección)
+    const root = from && from.stage === to.stage && to.proj ? to.proj : to.stage;
     const accept = el => {
       const p = el.closest('.col-projects > .project');
       const d = el.closest('[data-pdesc]');
@@ -2859,6 +2860,11 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
     g.setAttribute('aria-hidden', 'true');
     g.setAttribute('inert', '');
     g.classList.add('reel-snap');
+    // sólo lo que se ve: clonar todos los proyectos (con sus imágenes)
+    // retrasaba el arranque de la animación
+    g.querySelectorAll('.col-projects > .project:not(.is-current)').forEach(el => el.remove());
+    const hidden = g.querySelector(stage.classList.contains('m-intro') ? '.col-right' : '.col-intro');
+    if (hidden) hidden.remove();
     Object.assign(g.style, {
       position: 'absolute', margin: '0', pointerEvents: 'none',
       top: c.offsetTop + 'px', left: c.offsetLeft + 'px',
