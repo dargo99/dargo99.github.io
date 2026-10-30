@@ -3841,34 +3841,38 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
   ufo.innerHTML = `<svg viewBox="0 0 18 13" shape-rendering="crispEdges" aria-hidden="true"><g class="ufo-beam">${beam}</g><g class="ufo-body">${rects}</g></svg>`;
   bar.appendChild(ufo);
 
-  // ARRASTRAR EL OVNI: la estela sigue al dedo / mouse por la barra y el deck
-  // va mostrando la diapositiva de esa posición mientras se arrastra
+  // BARRA COMO REPRODUCTOR DE VIDEO: tocar cualquier punto de la línea lleva
+  // el ovni (y el deck) ahí, y arrastrarlo va mostrando en vivo la diapositiva
+  // de esa posición
   const track = bar.parentElement;
   let drag = null;
   const pos = e => {
     const r = track.getBoundingClientRect();
     return Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
   };
-  ufo.addEventListener('pointerdown', e => {
-    if (!window.deck || !window.deck.count || e.button > 0) return;
-    e.preventDefault();
-    ufo.setPointerCapture(e.pointerId);
-    // el ovni no salta bajo el dedo: se conserva la distancia al punto tomado
-    drag = { off: parseFloat(bar.style.width || 0) / 100 - pos(e), i: window.deck.index() };
-    document.body.classList.add('ufo-dragging');
-  });
-  ufo.addEventListener('pointermove', e => {
-    if (!drag) return;
+  const seek = e => {
     const f = Math.min(1, Math.max(0, pos(e) + drag.off));
     const n = window.deck.count();
     const i = Math.max(0, Math.ceil(f * n) - 1);
-    // se navega en vivo (sin animación) a medida que se mueve el ovni
+    // sin animación: se recorre como la línea de tiempo de un video
     if (i !== drag.i) {
       drag.i = i;
       window.deck.goTo(i, { instant: true });
     }
     bar.style.width = (f * 100) + '%';
+  };
+  track.addEventListener('pointerdown', e => {
+    if (!window.deck || !window.deck.count || e.button > 0) return;
+    e.preventDefault();
+    track.setPointerCapture(e.pointerId);
+    // tomado del ovni: no salta bajo el dedo (se conserva la distancia);
+    // en otro punto de la línea, el ovni va directo ahí
+    const onUfo = ufo.contains(e.target);
+    drag = { off: onUfo ? parseFloat(bar.style.width || 0) / 100 - pos(e) : 0, i: window.deck.index() };
+    document.body.classList.add('ufo-dragging');
+    if (!onUfo) seek(e);
   });
+  track.addEventListener('pointermove', e => { if (drag) seek(e); });
   const drop = () => {
     if (!drag) return;
     const i = drag.i;
@@ -3878,8 +3882,8 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
     // la estela vuelve al largo exacto de la diapositiva elegida
     bar.style.width = ((i + 1) / n * 100) + '%';
   };
-  ufo.addEventListener('pointerup', drop);
-  ufo.addEventListener('pointercancel', drop);
+  track.addEventListener('pointerup', drop);
+  track.addEventListener('pointercancel', drop);
 })();
 
 /* ---------- precalentado del deck ----------

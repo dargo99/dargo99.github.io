@@ -5104,3 +5104,6 @@ body.ufo-dragging #deck-progress span { transition: none; }
 /* reels: sin miniaturas (el slider se recorre con sus flechas o deslizando)
    para que el proyecto quepa en una pantalla */
 .deck-reels .col-projects .slider > .thumbs { display: none; }
+/* la línea de progreso se toca como la de un video: área de toque más alta */
+.deck #deck-progress { pointer-events: auto; cursor: pointer; touch-action: none; }
+.deck #deck-progress::after { content: ''; position: absolute; left: 0; right: 0; top: -4px; bottom: -10px; }
