@@ -4156,17 +4156,22 @@ void main(){
   float f = fbm(p + 2.2 * r);
   // bandas iridiscentes anchas (película fina); fase lenta
   float band = f * 3.0 + r.x * 1.25 + p.x * 0.35 + t * 0.5;
-  // arcoíris completo (rueda de tono entera, rosado y morado incluidos) con
-  // muchas bandas en pantalla para que ningún color predomine; el tono pasa
-  // un poco más rápido por los verdes (en la rueda ocupan más) para
-  // equilibrar
-  float u = fract(band * 0.9 + p.x * 0.8 + p.y * 1.3);
-  float h = fract(u + 0.35 / 6.2831 * sin(6.2831 * (u - 0.33)));
-  vec3 col = clamp(abs(mod(h * 6. + vec3(0., 4., 2.), 6.) - 3.) - 1., 0., 1.);
-  col = mix(vec3(1.), col, 0.88);   // saturación algo contenida (armonía)
-  // color casi en todo el hero (bandas anchas), con zonas algo más suaves
+  // paleta de la referencia (acrílico vertido): crema → dorado → naranja →
+  // rojo óxido → carbón → verde azulado → salvia y de vuelta a crema; cada
+  // tramo se funde con el siguiente, así las bandas siguen el orden de la imagen
+  float u = fract(band * 0.9 + p.x * 0.8 + p.y * 1.3) * 7.;
+  vec3 col = vec3(0.949, 0.894, 0.812);
+  col = mix(col, vec3(0.949, 0.663, 0.231), smoothstep(0., 1., u));
+  col = mix(col, vec3(0.933, 0.416, 0.141), smoothstep(1., 2., u));
+  col = mix(col, vec3(0.722, 0.212, 0.110), smoothstep(2., 3., u));
+  col = mix(col, vec3(0.078, 0.125, 0.165), smoothstep(3., 4., u));
+  col = mix(col, vec3(0.184, 0.353, 0.353), smoothstep(4., 5., u));
+  col = mix(col, vec3(0.737, 0.839, 0.796), smoothstep(5., 6., u));
+  col = mix(col, vec3(0.949, 0.894, 0.812), smoothstep(6., 7., u));
+  // color casi en todo el hero (bandas anchas), con zonas algo más suaves;
+  // algo más intenso que con el arcoíris porque estos tonos son más apagados
   float k = 0.45 + 0.55 * smoothstep(0.3, 0.8, f + 0.3 * length(q));
-  gl_FragColor = vec4(mix(vec3(1.), col, 0.23 * k), 1.);
+  gl_FragColor = vec4(mix(vec3(1.), col, 0.45 * k), 1.);
 }`;
   function sh(type, src) {
     const s = gl.createShader(type);
