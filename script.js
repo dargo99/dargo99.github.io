@@ -1932,7 +1932,7 @@ document.addEventListener('keydown', e => {
 function initToolFloat(toolsBg, opts) {
   if (!toolsBg) return;
   const cfg = opts || {};
-  const icons = ['illustrator','wordpress','ps','figma','css','html','js','php','react','moodle','ux','aftereffects','premiere','claude','codex','gemini','creativecloud','woocommerce','elementor','jquery'];
+  const icons = ['illustrator','wordpress','ps','figma','css','html','js','php','react','moodle','ux','aftereffects','premiere','claude','codex','antigravity','creativecloud','woocommerce','elementor','jquery'];
 
   const R_NEAR = 300;
   const R_HARD = 100;
@@ -2151,7 +2151,7 @@ document.querySelectorAll('#page > section.company-sec').forEach(sec => {
    tenue. Igual que los del hero, el cursor los REPELE (usa el mx/my global, sin
    listeners de mousemove extra → no cuesta rendimiento en los sliders). */
 (function () {
-  const ICONS = ['illustrator','wordpress','ps','figma','css','html','js','php','react','moodle','ux','aftereffects','premiere','claude','codex','gemini','creativecloud','woocommerce','elementor','jquery'];
+  const ICONS = ['illustrator','wordpress','ps','figma','css','html','js','php','react','moodle','ux','aftereffects','premiere','claude','codex','antigravity','creativecloud','woocommerce','elementor','jquery'];
   const live = [];
   let raf = null, last = 0;
   const MAX = 40;                    // tope de iconos vivos a la vez
