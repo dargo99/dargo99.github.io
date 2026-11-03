@@ -5140,3 +5140,6 @@ body.ufo-dragging #cursor {
 body.ufo-dragging #cursor { background-image: url('img/px/hand-grab.svg'); }
 /* arrastrando el ovni no se selecciona texto */
 body.ufo-dragging, body.ufo-dragging * { user-select: none; -webkit-user-select: none; }
+
+/* about sin glow de color: ni aceite (WebGL) ni franjas difuminadas */
+#about > .sec-streak, #about > .hero-streak { display: none; }

@@ -4361,7 +4361,7 @@ void main(){
 }
 // hero y about (las dos diapositivas claras); cada una corre sólo cuando se ve
 initFluid(document.getElementById('hero'));
-initFluid(document.getElementById('about'));
+// el about va sin aceite ni glow de color (sólo la cuadrícula crema)
 
 // HERO: la flecha de la pista ("… use these keys →") avanza a saltos parejos
 // hacia el instructivo de teclas, dejando en cada salto una copia que se
