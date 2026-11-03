@@ -5140,10 +5140,3 @@ body.ufo-dragging #cursor {
 body.ufo-dragging #cursor { background-image: url('img/px/hand-grab.svg'); }
 /* arrastrando el ovni no se selecciona texto */
 body.ufo-dragging, body.ufo-dragging * { user-select: none; -webkit-user-select: none; }
-
-/* about: el aceite se desvanece en la esquina superior izquierda (título 06. y
-   parte alta del retrato) para que no tiña esa zona */
-#about .hero-fluid {
-  -webkit-mask-image: radial-gradient(ellipse 55% 60% at 0% 0%, transparent 0%, transparent 35%, #000 100%);
-          mask-image: radial-gradient(ellipse 55% 60% at 0% 0%, transparent 0%, transparent 35%, #000 100%);
-}
