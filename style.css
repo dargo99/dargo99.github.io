@@ -5141,11 +5141,18 @@ body.ufo-dragging #cursor { background-image: url('img/px/hand-grab.svg'); }
 /* arrastrando el ovni no se selecciona texto */
 body.ufo-dragging, body.ufo-dragging * { user-select: none; -webkit-user-select: none; }
 
-/* ABOUT: recorte (PNG sin fondo) dentro del mismo marco pixel del video:
-   borde oscuro de 4px, esquinas en escalón y sombra dura; fondo crema detrás */
+/* ABOUT: recorte (PNG sin fondo) con marco pixel-art ilustrado (azul marino,
+   luz celeste, remaches dorados en las esquinas): border-image 9-slice */
 .about-img .about-frame.about-cutout img,
 .deck #about .about-img .about-frame.about-cutout img {
-  padding: 0; border: 4px solid #222; background: #efe9dc;
+  padding: 0; background: #efe9dc; clip-path: none;
+  border: 18px solid transparent;
+  border-image: url("img/opt/about-frame.png") 6 fill / 18px / 0 round;
+  background-clip: padding-box;
+  image-rendering: pixelated;
   max-width: 100%; height: auto; aspect-ratio: 1 / 1; object-fit: cover;
+  box-sizing: border-box;
 }
+.about-frame.about-cutout { --frame-clip: none; }
+.about-frame.about-cutout::before { clip-path: none; transform: translate(8px, 8px); background: rgba(11, 19, 48, 0.28); }
 .deck #about .about-img .about-frame.about-cutout img { max-height: calc(var(--stage-h) - 10rem); width: auto; }
