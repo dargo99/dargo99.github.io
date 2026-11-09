@@ -5141,22 +5141,43 @@ body.ufo-dragging #cursor { background-image: url('img/px/hand-grab.svg'); }
 /* arrastrando el ovni no se selecciona texto */
 body.ufo-dragging, body.ufo-dragging * { user-select: none; -webkit-user-select: none; }
 
-/* ABOUT: recorte (PNG sin fondo) con marco "vidas": línea fina en tinta y
-   corazones pixel rojos en las esquinas. El marco va en una capa encima
-   (::after con border-image) para que sólo él se escale "pixelated" y la
-   foto se vea suave; sin fondo detrás de la foto */
+/* ABOUT: recorte (PNG sin fondo) con marco "arcade" fino: banda gris oscura
+   de 8 px y una greca en escalón en cada esquina (img/opt/about-frame.png,
+   generado con marcos/frame-arcade-fino.py). El marco va en una capa encima (::after
+   con border-image) para que sólo él se escale "pixelated" y la foto se vea
+   suave; sin fondo detrás de la foto */
 .about-img .about-frame.about-cutout img,
 .deck #about .about-img .about-frame.about-cutout img {
-  padding: 12px; background: none; clip-path: none; border: 0;
+  padding: 8px; background: none; clip-path: none; border: 0;
   max-width: 100%; height: auto; aspect-ratio: 1 / 1; object-fit: cover;
   box-sizing: border-box;
 }
 .about-frame.about-cutout { --frame-clip: none; }
 .about-frame.about-cutout::before { display: none; }
 .about-frame.about-cutout::after {
-  content: ''; position: absolute; inset: 0; pointer-events: none;
-  border: 12px solid transparent;
-  border-image: url("img/opt/about-frame.png") 6 / 12px / 0 stretch;
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  border: 24px solid transparent;
+  border-image: url("img/opt/about-frame.png") 12 / 24px / 0 stretch;
   image-rendering: pixelated;
 }
 .deck #about .about-img .about-frame.about-cutout img { max-height: calc(var(--stage-h) - 10rem); width: auto; }
+
+/* tres corazones pixel en la esquina superior izquierda que titilan */
+.about-lives {
+  position: absolute; top: 36px; left: 24px; z-index: 2;
+  display: flex; gap: 5px; pointer-events: none;
+}
+.about-lives i {
+  width: 20px; height: 20px; display: block;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 5 5' shape-rendering='crispEdges'%3E%3Cpath fill='%23e63946' d='M1 0h1v1H1zM3 0h1v1H3zM0 1h5v2H0zM1 3h3v1H1zM2 4h1v1H2z'/%3E%3Cpath fill='%23ffd0d8' d='M1 1h1v1H1z'/%3E%3C/svg%3E") center / contain no-repeat;
+  image-rendering: pixelated;
+  animation: lifeBlink 1.6s steps(1, end) infinite;
+}
+.about-lives i:nth-child(2) { animation-delay: 0.2s; }
+.about-lives i:nth-child(3) { animation-delay: 0.4s; }
+@keyframes lifeBlink {
+  0%, 70% { opacity: 1; }
+  75%, 85% { opacity: 0.15; }
+  90% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .about-lives i { animation: none; } }
