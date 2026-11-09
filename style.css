@@ -5141,18 +5141,22 @@ body.ufo-dragging #cursor { background-image: url('img/px/hand-grab.svg'); }
 /* arrastrando el ovni no se selecciona texto */
 body.ufo-dragging, body.ufo-dragging * { user-select: none; -webkit-user-select: none; }
 
-/* ABOUT: recorte (PNG sin fondo) con marco pixel-art ilustrado (azul marino,
-   luz celeste, remaches dorados en las esquinas): border-image 9-slice */
+/* ABOUT: recorte (PNG sin fondo) con marco "vidas": línea fina en tinta y
+   corazones pixel rojos en las esquinas. El marco va en una capa encima
+   (::after con border-image) para que sólo él se escale "pixelated" y la
+   foto se vea suave; sin fondo detrás de la foto */
 .about-img .about-frame.about-cutout img,
 .deck #about .about-img .about-frame.about-cutout img {
-  padding: 0; background: #efe9dc; clip-path: none;
-  border: 18px solid transparent;
-  border-image: url("img/opt/about-frame.png") 6 fill / 18px / 0 round;
-  background-clip: padding-box;
-  image-rendering: pixelated;
+  padding: 12px; background: none; clip-path: none; border: 0;
   max-width: 100%; height: auto; aspect-ratio: 1 / 1; object-fit: cover;
   box-sizing: border-box;
 }
 .about-frame.about-cutout { --frame-clip: none; }
-.about-frame.about-cutout::before { clip-path: none; transform: translate(8px, 8px); background: rgba(11, 19, 48, 0.28); }
+.about-frame.about-cutout::before { display: none; }
+.about-frame.about-cutout::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  border: 12px solid transparent;
+  border-image: url("img/opt/about-frame.png") 6 / 12px / 0 stretch;
+  image-rendering: pixelated;
+}
 .deck #about .about-img .about-frame.about-cutout img { max-height: calc(var(--stage-h) - 10rem); width: auto; }
